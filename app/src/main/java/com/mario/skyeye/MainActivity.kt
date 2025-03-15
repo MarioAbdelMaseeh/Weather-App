@@ -4,6 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -51,22 +52,22 @@ class MainActivity : ComponentActivity() {
         }
         val items = listOf<BottomNavigationItem>(
             BottomNavigationItem(
-                title = "Home",
+                title = getString(R.string.home),
                 selectedIcon = R.drawable.home_filled,
                 unselectedIcon = R.drawable.home
             ),
             BottomNavigationItem(
-                title = "Favorites",
+                title = getString(R.string.favorites),
                 selectedIcon = R.drawable.favorites_filled,
                 unselectedIcon = R.drawable.favorites
             ),
             BottomNavigationItem(
-                title = "Alerts",
+                title = getString(R.string.alerts),
                 selectedIcon = R.drawable.alarm_clock_filled,
                 unselectedIcon = R.drawable.alarm_clock
             ),
             BottomNavigationItem(
-                title = "Settings",
+                title = getString(R.string.settings),
                 selectedIcon = R.drawable.settings_filled,
                 unselectedIcon = R.drawable.settings
             )
