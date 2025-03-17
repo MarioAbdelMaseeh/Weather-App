@@ -1,6 +1,7 @@
 package com.mario.skyeye.data.models
 
 import androidx.room.Entity
+import com.google.gson.annotations.SerializedName
 
 @Entity(tableName = "current_weather")
 data class CurrentWeatherResponse(
@@ -30,14 +31,19 @@ data class Coord(
 )
 
 data class Main(
-    val feels_like: Double,
-    val grnd_level: Int,
+    @SerializedName("feels_like")
+    val feelsLike: Double,
+    @SerializedName("grnd_level")
+    val groundLevel: Int,
     val humidity: Int,
     val pressure: Int,
-    val sea_level: Int,
+    @SerializedName("sea_level")
+    val seaLevel: Int,
     val temp: Double,
-    val temp_max: Double,
-    val temp_min: Double
+    @SerializedName("temp_max")
+    val tempMax: Double,
+    @SerializedName("temp_min")
+    val tempMin: Double
 )
 
 data class Rain(

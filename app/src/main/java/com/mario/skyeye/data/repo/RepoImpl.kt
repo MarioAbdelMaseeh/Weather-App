@@ -1,31 +1,29 @@
 package com.mario.skyeye.data.repo
-
-import com.mario.skyeye.data.local.LocalDataSource
 import com.mario.skyeye.data.models.CurrentWeatherResponse
-import com.mario.skyeye.data.remote.ProductsRemoteDataSource
+import com.mario.skyeye.data.remote.RemoteDataSource
 
 class RepoImpl private constructor(
-    private val remoteDataSource: ProductsRemoteDataSource,
-    private val localDataSource: LocalDataSource
+    private val remoteDataSource: RemoteDataSource,
+    //private val localDataSource: LocalDataSource
 ) : Repo {
     companion object {
         private var instance: RepoImpl? = null
         fun getInstance(
-            remoteDataSource: ProductsRemoteDataSource,
-            localDataSource: LocalDataSource
+            remoteDataSource: RemoteDataSource,
+            //localDataSource: LocalDataSource
         ): RepoImpl {
             if (instance == null) {
-                instance = RepoImpl(remoteDataSource, localDataSource)
+                instance = RepoImpl(remoteDataSource)
             }
             return instance!!
         }
     }
 
-    override suspend fun getCurrentWeather(isOnline: Boolean): CurrentWeatherResponse? {
+    override suspend fun getCurrentWeather(isOnline: Boolean, lat: Double, lon: Double): CurrentWeatherResponse? {
         return if (isOnline) {
-            remoteDataSource.getCurrentWeather()
+            remoteDataSource.getCurrentWeather(lat,lon)
         } else {
-            remoteDataSource.getCurrentWeather()
+            remoteDataSource.getCurrentWeather(lat,lon)
         }
     }
 
