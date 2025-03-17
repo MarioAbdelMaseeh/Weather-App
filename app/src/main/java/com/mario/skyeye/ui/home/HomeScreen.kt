@@ -1,11 +1,13 @@
 package com.mario.skyeye.ui.home
 
 import android.util.Log
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -19,13 +21,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
-import com.bumptech.glide.integration.compose.GlideImage
 import com.mario.skyeye.R
+import com.mario.skyeye.locationState
+import com.mario.skyeye.ui.WeatherIconMapper
 import java.text.DateFormat
 import java.util.Date
 
@@ -33,7 +37,7 @@ import java.util.Date
 @Composable
 fun HomeScreenUI(viewModel: HomeViewModel){
     val response = viewModel.currentWeatherResponse.observeAsState()
-    viewModel.getCurrentWeather()
+    viewModel.getCurrentWeather(locationState.value.latitude, locationState.value.longitude)
     Log.i("TAG", "HomeScreenUI:${response.value?.name} ")
     Box(
         modifier = Modifier.fillMaxSize()
@@ -55,7 +59,7 @@ fun HomeScreenUI(viewModel: HomeViewModel){
                         text = response.value?.name ?: "No Data",
                         color = colorResource(id = R.color.black),
                         fontSize = 24.sp,
-                        modifier = Modifier.padding(16.dp)
+                        modifier = Modifier.padding(16.dp, 16.dp, 16.dp, 8.dp)
                             .align(Alignment.CenterHorizontally)
                             .fillMaxSize(),
                         textAlign = TextAlign.Center
@@ -83,14 +87,10 @@ fun HomeScreenUI(viewModel: HomeViewModel){
                                 verticalArrangement = Arrangement.Center,
                                 horizontalAlignment = Alignment.CenterHorizontally
                             ) {
-                                GlideImage(
-                                    model = "https://openweathermap.org/img/wn/${response.value?.weather?.get(0)?.icon}@2x.png",
+                                Image(
+                                    painter = painterResource(id = WeatherIconMapper.getWeatherIcon(response.value?.weather?.get(0)?.icon ?: "01d")),
                                     contentDescription = "Weather Icon",
                                     modifier = Modifier.size(150.dp)
-                                )
-                                var myDate = Date()
-                                Text(
-                                    text = DateFormat.getDateInstance(DateFormat.FULL).format(myDate),
                                 )
                             }
                             Column(
@@ -102,7 +102,9 @@ fun HomeScreenUI(viewModel: HomeViewModel){
                                     color = colorResource(id = R.color.black),
                                     fontSize = 20.sp,
                                 )
-
+                                Spacer(
+                                    modifier = Modifier.size(8.dp)
+                                )
                                 Text(
                                     text = "${response.value?.main?.temp?.minus(273)?.toInt() ?: "No Data"} °C",
                                     color = colorResource(id = R.color.black),
@@ -116,6 +118,13 @@ fun HomeScreenUI(viewModel: HomeViewModel){
                                     text = "Feels like ${response.value?.main?.feelsLike?.minus(273)?.toInt() ?: "No Data"} °C",
                                     color = colorResource(id = R.color.black),
                                     fontSize = 16.sp,
+                                )
+                                Spacer(
+                                    modifier = Modifier.size(8.dp)
+                                )
+                                var myDate = Date()
+                                Text(
+                                    text = DateFormat.getDateInstance(DateFormat.FULL).format(myDate),
                                 )
                             }
                         }

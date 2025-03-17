@@ -15,10 +15,10 @@ class HomeViewModel(private val repo: Repo): ViewModel(){
     val currentWeatherResponse: LiveData<CurrentWeatherResponse> = mutableCurrentWeatherResponse
     private val mutableMessage: MutableLiveData<String> = MutableLiveData()
     val message: LiveData<String> = mutableMessage
-    fun getCurrentWeather() {
+    fun getCurrentWeather(lat: Double, lon: Double) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                val response = repo.getCurrentWeather(true, 37.7749, -122.4194)
+                val response = repo.getCurrentWeather(true, lat, lon)
                 if (response != null) {
                     mutableCurrentWeatherResponse.postValue(response)
                 } else {

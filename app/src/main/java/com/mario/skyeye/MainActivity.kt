@@ -44,10 +44,9 @@ import com.mario.skyeye.navigation.BottomNavigationItem
 import com.mario.skyeye.navigation.ScreensRoutes
 import com.mario.skyeye.navigation.SetupNavHost
 const val REQUEST_CODE_LOCATION = 5005
-
+lateinit var locationState: MutableState<Location>
 class MainActivity : ComponentActivity() {
     private lateinit var fusedLocationClient: FusedLocationProviderClient
-    private lateinit var locationState: MutableState<Location>
     private lateinit var geocoder: Geocoder
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
