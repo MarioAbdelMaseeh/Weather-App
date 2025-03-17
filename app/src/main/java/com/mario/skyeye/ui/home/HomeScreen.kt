@@ -144,11 +144,11 @@ private fun SmallBox(icon: Int?, name: String?, value: String?, measuringUnit: S
             )
             Spacer(modifier = Modifier.size(8.dp))
             Column {
-                Text(text = name ?: "N/A", color = colorResource(id = R.color.black), fontSize = 16.sp)
+                Text(text = name ?: "N/A", color = colorResource(id = R.color.black), fontSize = 12.sp)
                 Text(
                     text = "${value ?: "No Data"} ${measuringUnit ?: "N/A"}",
                     color = colorResource(id = R.color.black),
-                    fontSize = 16.sp
+                    fontSize = 12.sp
                 )
             }
         }
@@ -209,7 +209,7 @@ private fun CurrentWeatherBox(response: State<CurrentWeatherResponse?>) {
                     modifier = Modifier.size(8.dp)
                 )
                 Text(
-                    text = "${response.value?.main?.temp?.minus(273)?.toInt() ?: "No Data"} °C",
+                    text = "${response.value?.main?.temp?.toInt() ?: "No Data"} °C",
                     color = colorResource(id = R.color.black),
                     fontSize = 40.sp,
                     fontWeight = FontWeight.Bold,
@@ -219,7 +219,7 @@ private fun CurrentWeatherBox(response: State<CurrentWeatherResponse?>) {
                 )
                 Text(
                     text = "Feels like ${
-                        response.value?.main?.feelsLike?.minus(273)?.toInt() ?: "No Data"
+                        response.value?.main?.feelsLike?.toInt() ?: "No Data"
                     } °C",
                     color = colorResource(id = R.color.black),
                     fontSize = 16.sp,

@@ -10,7 +10,9 @@ interface APIService {
     suspend fun getCurrentWeather(
         @Query("lat") lat: Double,
         @Query("lon") lon: Double,
-        @Query("appid") appId: String = "844a4cd04ffae12ec335ae0bc0ea63ec"
+        @Query("appid") appId: String = "844a4cd04ffae12ec335ae0bc0ea63ec",
+        @Query("units") units: String = "metric",
+        @Query("lang") lang: String = "en"
     ): Response<CurrentWeatherResponse>
 }
 

@@ -1,5 +1,7 @@
 package com.mario.skyeye.navigation
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.runtime.Composable
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
@@ -17,6 +19,7 @@ import com.mario.skyeye.ui.favorites.FavoritesScreenUI
 import com.mario.skyeye.ui.home.HomeFactory
 import com.mario.skyeye.ui.home.HomeScreenUI
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun SetupNavHost(navHostController: NavHostController){
     NavHost(
