@@ -1,5 +1,6 @@
 package com.mario.skyeye.data.repo
 import com.mario.skyeye.data.models.CurrentWeatherResponse
+import com.mario.skyeye.data.models.WeatherForecast
 import com.mario.skyeye.data.remote.RemoteDataSource
 import kotlinx.coroutines.flow.Flow
 
@@ -28,5 +29,15 @@ class RepoImpl private constructor(
         }
     }
 
-
+    override suspend fun getWeatherForecast(
+        isOnline: Boolean,
+        lat: Double,
+        lon: Double
+    ): Flow<WeatherForecast?>? {
+        return if (isOnline) {
+            remoteDataSource.getWeatherForecast(lat,lon)
+        } else {
+            remoteDataSource.getWeatherForecast(lat,lon)
+        }
+    }
 }
