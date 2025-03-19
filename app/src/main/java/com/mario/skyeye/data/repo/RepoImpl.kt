@@ -1,6 +1,7 @@
 package com.mario.skyeye.data.repo
 import com.mario.skyeye.data.models.CurrentWeatherResponse
 import com.mario.skyeye.data.remote.RemoteDataSource
+import kotlinx.coroutines.flow.Flow
 
 class RepoImpl private constructor(
     private val remoteDataSource: RemoteDataSource,
@@ -19,7 +20,7 @@ class RepoImpl private constructor(
         }
     }
 
-    override suspend fun getCurrentWeather(isOnline: Boolean, lat: Double, lon: Double): CurrentWeatherResponse? {
+    override suspend fun getCurrentWeather(isOnline: Boolean, lat: Double, lon: Double): Flow<CurrentWeatherResponse?>? {
         return if (isOnline) {
             remoteDataSource.getCurrentWeather(lat,lon)
         } else {

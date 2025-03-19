@@ -13,6 +13,6 @@ interface APIService {
         @Query("appid") appId: String = "844a4cd04ffae12ec335ae0bc0ea63ec",
         @Query("units") units: String = "metric",
         @Query("lang") lang: String = "en"
-    ): Response<CurrentWeatherResponse>
+    ): Response<CurrentWeatherResponse>?
 }
 

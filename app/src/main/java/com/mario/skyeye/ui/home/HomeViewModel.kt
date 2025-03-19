@@ -6,26 +6,36 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.mario.skyeye.data.models.CurrentWeatherResponse
+import com.mario.skyeye.data.models.Response
 import com.mario.skyeye.data.repo.Repo
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
 
 class HomeViewModel(private val repo: Repo): ViewModel(){
-    private val mutableCurrentWeatherResponse: MutableLiveData<CurrentWeatherResponse> = MutableLiveData()
-    val currentWeatherResponse: LiveData<CurrentWeatherResponse> = mutableCurrentWeatherResponse
-    private val mutableMessage: MutableLiveData<String> = MutableLiveData()
-    val message: LiveData<String> = mutableMessage
+    private val _currentWeatherState: MutableStateFlow<Response<CurrentWeatherResponse?>> = MutableStateFlow(Response.Loading)
+    val currentWeatherState: StateFlow<Response<CurrentWeatherResponse?>> = _currentWeatherState.asStateFlow()
+
+
     fun getCurrentWeather(lat: Double, lon: Double) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 val response = repo.getCurrentWeather(true, lat, lon)
-                if (response != null) {
-                    mutableCurrentWeatherResponse.postValue(response)
-                } else {
-                    mutableMessage.postValue("Error")
+                response?.catch { e ->
+                    _currentWeatherState.value = Response.Failure(e)
+                }?.collect { weatherResponse ->
+                    if (weatherResponse != null) {
+                        _currentWeatherState.value =
+                            Response.Success<CurrentWeatherResponse>(weatherResponse)
+                    }else{
+                        _currentWeatherState.value = Response.Failure(Throwable("No Data"))
+                    }
                 }
-            }catch (ex: Exception){
-                mutableMessage.postValue(ex.message)
+            } catch (e: Exception) {
+                _currentWeatherState.value = Response.Failure(e)
             }
         }
     }

@@ -1,7 +1,6 @@
 package com.mario.skyeye.ui.home
 
 import android.os.Build
-import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -16,10 +15,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.State
-import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -32,11 +31,10 @@ import androidx.compose.ui.unit.sp
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.mario.skyeye.R
 import com.mario.skyeye.data.models.CurrentWeatherResponse
+import com.mario.skyeye.data.models.Response
 import com.mario.skyeye.locationState
 import com.mario.skyeye.ui.WeatherIconMapper
-import java.sql.Timestamp
 import java.text.DateFormat
-import java.text.SimpleDateFormat
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -46,46 +44,60 @@ import java.util.Date
 @OptIn(ExperimentalGlideComposeApi::class)
 @Composable
 fun HomeScreenUI(viewModel: HomeViewModel){
-    val response = viewModel.currentWeatherResponse.observeAsState()
+    val response = viewModel.currentWeatherState.collectAsState()
     viewModel.getCurrentWeather(locationState.value.latitude, locationState.value.longitude)
-    Log.i("TAG", "HomeScreenUI:${response.value?.name} ")
-    Box(
-        modifier = Modifier.fillMaxSize()
-            .background(
-                brush = Brush.verticalGradient(
-                  colors = listOf(
-                      colorResource(id = R.color.white),
-                      colorResource(id = R.color.teal_700)
-                  )
-                )
-            )
-        )
-    {
-        Column(modifier = Modifier.fillMaxSize()) {
-            LazyColumn(modifier = Modifier.fillMaxSize(),
-                horizontalAlignment = Alignment.CenterHorizontally) {
-                item {
-                    Text(
-                        text = response.value?.name ?: "No Data",
-                        color = colorResource(id = R.color.black),
-                        fontSize = 24.sp,
-                        modifier = Modifier.padding(16.dp, 16.dp, 16.dp, 8.dp)
-                            .align(Alignment.CenterHorizontally)
-                            .fillMaxSize(),
-                        textAlign = TextAlign.Center
-                    )
-                    CurrentWeatherBox(response)
-                    Spacer(modifier = Modifier.size(16.dp))
-                    WeatherDetailsBox(response)
-                }
+    when(response.value){
+        is Response.Loading -> {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator()
             }
         }
+        is Response.Success -> {
+            val currentWeatherResponse = (response.value as Response.Success<CurrentWeatherResponse?>).data
+            Box(
+                modifier = Modifier.fillMaxSize()
+                    .background(
+                        brush = Brush.verticalGradient(
+                            colors = listOf(
+                                colorResource(id = R.color.white),
+                                colorResource(id = R.color.teal_700)
+                            )
+                        )
+                    )
+            )
+            {
+                Column(modifier = Modifier.fillMaxSize()) {
+                    LazyColumn(modifier = Modifier.fillMaxSize(),
+                        horizontalAlignment = Alignment.CenterHorizontally) {
+                        item {
+                            Text(
+                                text = currentWeatherResponse?.name.toString(),
+                                color = colorResource(id = R.color.black),
+                                fontSize = 24.sp,
+                                modifier = Modifier.padding(16.dp, 16.dp, 16.dp, 8.dp)
+                                    .align(Alignment.CenterHorizontally)
+                                    .fillMaxSize(),
+                                textAlign = TextAlign.Center
+                            )
+                            CurrentWeatherBox(currentWeatherResponse)
+                            Spacer(modifier = Modifier.size(16.dp))
+                            WeatherDetailsBox(currentWeatherResponse)
+                        }
+                    }
+                }
+            }
+
+        }
+        is Response.Failure -> {
+            Text(text = "Error: ${(response.value as Response.Failure).error.message}")
+        }
     }
+
 }
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun WeatherDetailsBox(x0: State<CurrentWeatherResponse?>) {
+fun WeatherDetailsBox(x0: CurrentWeatherResponse?) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -106,25 +118,25 @@ fun WeatherDetailsBox(x0: State<CurrentWeatherResponse?>) {
             horizontalArrangement = Arrangement.SpaceEvenly) {
             Column(verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.Start){
-                SmallBox(R.drawable.snow_day, "Humidity", x0.value?.main?.humidity.toString(),"%")
+                SmallBox(R.drawable.snow_day, "Humidity", x0?.main?.humidity.toString(),"%")
                 Spacer(modifier = Modifier.size(8.dp))
-                SmallBox(R.drawable.th_day, "Wind Speed", x0.value?.wind?.speed.toString(),"m/s")
+                SmallBox(R.drawable.th_day, "Wind Speed", x0?.wind?.speed.toString(),"m/s")
             }
             Column(verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.Start) {
                 SmallBox(
                     R.drawable.very_cloudy_day,
                     "Pressure",
-                    x0.value?.main?.pressure.toString(),
+                    x0?.main?.pressure.toString(),
                     "hPa"
                 )
                 Spacer(modifier = Modifier.size(8.dp))
-                SmallBox(R.drawable.cloudy_day, "Visibility", x0.value?.visibility.toString(),"m")
+                SmallBox(R.drawable.cloudy_day, "Visibility", x0?.visibility.toString(),"m")
             }
             Column {
 
-                val riseTime = getHourFormTime(x0.value?.sys?.sunrise?.toLong() ?: 0)
-                val setTime = getHourFormTime(x0.value?.sys?.sunset?.toLong() ?: 0)
+                val riseTime = getHourFormTime(x0?.sys?.sunrise?.toLong() ?: 0)
+                val setTime = getHourFormTime(x0?.sys?.sunset?.toLong() ?: 0)
                 SmallBox(R.drawable.base_sun, "Sunrise", riseTime.toString(),"")
                 Spacer(modifier = Modifier.size(8.dp))
                 SmallBox(R.drawable.base_sun, "Sunset", setTime.toString(),"")
@@ -156,7 +168,7 @@ private fun SmallBox(icon: Int?, name: String?, value: String?, measuringUnit: S
 }
 
 @Composable
-private fun CurrentWeatherBox(response: State<CurrentWeatherResponse?>) {
+private fun CurrentWeatherBox(response: CurrentWeatherResponse?) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -184,7 +196,7 @@ private fun CurrentWeatherBox(response: State<CurrentWeatherResponse?>) {
                 Image(
                     painter = painterResource(
                         id = WeatherIconMapper.getWeatherIcon(
-                            response.value?.weather?.get(
+                            response?.weather?.get(
                                 0
                             )?.icon ?: "01d"
                         )
@@ -198,7 +210,7 @@ private fun CurrentWeatherBox(response: State<CurrentWeatherResponse?>) {
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
-                    text = response.value?.weather?.get(0)?.description ?: "No Data",
+                    text = response?.weather?.get(0)?.description ?: "No Data",
                     color = colorResource(id = R.color.black),
                     fontSize = 24.sp,
                     fontWeight = FontWeight.Bold,
@@ -209,7 +221,7 @@ private fun CurrentWeatherBox(response: State<CurrentWeatherResponse?>) {
                     modifier = Modifier.size(8.dp)
                 )
                 Text(
-                    text = "${response.value?.main?.temp?.toInt() ?: "No Data"} °C",
+                    text = "${response?.main?.temp?.toInt() ?: "No Data"} °C",
                     color = colorResource(id = R.color.black),
                     fontSize = 40.sp,
                     fontWeight = FontWeight.Bold,
@@ -219,7 +231,7 @@ private fun CurrentWeatherBox(response: State<CurrentWeatherResponse?>) {
                 )
                 Text(
                     text = "Feels like ${
-                        response.value?.main?.feelsLike?.toInt() ?: "No Data"
+                        response?.main?.feelsLike?.toInt() ?: "No Data"
                     } °C",
                     color = colorResource(id = R.color.black),
                     fontSize = 16.sp,
