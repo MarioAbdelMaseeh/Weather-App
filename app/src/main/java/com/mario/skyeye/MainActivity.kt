@@ -5,6 +5,7 @@ import android.content.pm.PackageManager
 import android.location.Geocoder
 import android.location.Location
 import android.location.LocationManager
+import android.os.Build
 import android.os.Bundle
 import android.os.Looper
 import android.provider.Settings
@@ -12,6 +13,7 @@ import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -48,6 +50,7 @@ lateinit var locationState: MutableState<Location>
 class MainActivity : ComponentActivity() {
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private lateinit var geocoder: Geocoder
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
@@ -55,10 +58,9 @@ class MainActivity : ComponentActivity() {
             geocoder = Geocoder(this)
             MainUi()
             Log.i("TAG", "onCreate:${locationState.value.latitude} ${locationState.value.longitude}")
-
-
         }
     }
+    @RequiresApi(Build.VERSION_CODES.O)
     @Preview
     @Composable
     fun MainUi(){
@@ -100,6 +102,7 @@ class MainActivity : ComponentActivity() {
                             selected = selectedItem == index,
                             onClick = {
                                 selectedItem = index
+                                navController.popBackStack()
                                 navController.navigate(item.route)
                             },
                             icon = {
@@ -179,7 +182,7 @@ class MainActivity : ComponentActivity() {
     }
     fun getLocation() {
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
-       val locationRequest = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY,5000)
+       val locationRequest = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY,1000)
            .setWaitForAccurateLocation(true)
            .build()
         val locationCallback = object :LocationCallback(){

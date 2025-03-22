@@ -63,7 +63,6 @@ class HomeViewModel(private val repo: Repo): ViewModel(){
             }
         }
     }
-
 }
 class HomeFactory(private val repo: Repo): ViewModelProvider.Factory{
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
