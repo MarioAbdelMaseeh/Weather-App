@@ -145,19 +145,41 @@ fun HomeScreenUI(viewModel: HomeViewModel) {
                             val weatherForecastResponse =
                                 (weatherForecastResponse.value as Response.Success<WeatherForecast>).data
                             val forecastDays = weatherForecastResponse.forecastDaysHelper()
-                            Column {
+                            Column(
+                                modifier = Modifier.fillMaxWidth()
+                            ){
                                 Text(
                                     text = "Hourly Forecast",
                                     color = colorResource(id = R.color.black),
                                     fontSize = 24.sp,
                                     fontWeight = FontWeight.Bold,
-                                    modifier = Modifier.padding(16.dp,8.dp)
+                                    modifier = Modifier.padding(16.dp,0.dp)
                                 )
                                 LazyRow(
                                     modifier = Modifier.padding(8.dp)
                                 ) {
                                     item {
                                         forecastDays.entries.first().value.forEach { forecast ->
+                                            Box(
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .padding(8.dp, 16.dp)
+                                                    .background(
+                                                        brush = Brush.horizontalGradient(
+                                                            colors = listOf(
+                                                                colorResource(id = R.color.teal_700),
+                                                                colorResource(id = R.color.teal_700)
+                                                            )
+                                                        ),
+                                                        shape = RoundedCornerShape(16.dp)
+                                                    )
+                                                    .padding(8.dp)
+                                            ) {
+                                                HourlyForecastItem(forecast)
+                                            }
+                                        }
+                                        forecastDays.entries.elementAt(1)
+                                            .value.forEach { forecast ->
                                             Box(
                                                 modifier = Modifier
                                                     .fillMaxWidth()
@@ -225,7 +247,10 @@ fun HourlyForecastItem(x0: WeatherForecast.Item0) {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        Text(text = getHourFormTime(x0.dt.toLong()))
+        Text(text = getHourFormTime(x0.dt.toLong()),
+            color = colorResource(id = R.color.black),
+            fontSize = 16.sp,
+        )
         Image(
             painter = painterResource(
                 id = WeatherIconMapper.getWeatherIcon(
@@ -235,7 +260,10 @@ fun HourlyForecastItem(x0: WeatherForecast.Item0) {
             contentDescription = "Weather Icon",
             modifier = Modifier.size(30.dp)
         )
-        Text(text = "${x0.main.temp.toInt()}°C")
+        Text(text = "${x0.main.temp.toInt()}°C",
+            color = colorResource(id = R.color.black),
+            fontSize = 16.sp,
+            fontWeight = FontWeight.Bold)
     }
 }
 
@@ -467,7 +495,6 @@ private fun CurrentWeatherBox(response: CurrentWeatherResponse?) {
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.fillMaxSize(),
                     textAlign = TextAlign.Center
-
                 )
                 Text(
                     text = "Feels like ${
@@ -481,7 +508,7 @@ private fun CurrentWeatherBox(response: CurrentWeatherResponse?) {
                 )
                 var myDate = Date()
                 Text(
-                    text = DateFormat.getDateInstance(DateFormat.FULL).format(myDate),
+                    text = DateFormat.getDateInstance(DateFormat.FULL).format(myDate)
                 )
             }
         }

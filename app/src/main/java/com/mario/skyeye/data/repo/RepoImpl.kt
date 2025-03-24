@@ -1,5 +1,6 @@
 package com.mario.skyeye.data.repo
 import com.mario.skyeye.data.models.CurrentWeatherResponse
+import com.mario.skyeye.data.models.GeoCoderResponse
 import com.mario.skyeye.data.models.WeatherForecast
 import com.mario.skyeye.data.remote.RemoteDataSource
 import kotlinx.coroutines.flow.Flow
@@ -39,5 +40,16 @@ class RepoImpl private constructor(
         } else {
             remoteDataSource.getWeatherForecast(lat,lon)
         }
+    }
+
+    override suspend fun getCityName(
+        lat: Double,
+        lon: Double
+    ): Flow<GeoCoderResponse?>? {
+        return remoteDataSource.getCityName(lat,lon)
+    }
+
+    override suspend fun getCoordinates(q: String): Flow<GeoCoderResponse?>? {
+        return remoteDataSource.getCoordinates(q)
     }
 }

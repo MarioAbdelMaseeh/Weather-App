@@ -11,4 +11,7 @@ sealed class ScreensRoutes(){
     object FavoritesScreen: ScreensRoutes()
     @Serializable
     object WeatherAlertsScreen: ScreensRoutes()
+    @Serializable
+    object MapScreen: ScreensRoutes()
+
 }
