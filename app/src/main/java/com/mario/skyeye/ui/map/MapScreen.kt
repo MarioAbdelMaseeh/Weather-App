@@ -8,14 +8,16 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.Save
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -76,11 +78,8 @@ fun MapUi(viewModel: MapViewModel, context: Context) {
         // Search Box
         Column(modifier = Modifier
             .fillMaxWidth()
-            .padding(16.dp)) {
-            Card(
-                shape = RoundedCornerShape(12.dp),
-                elevation = CardDefaults.elevatedCardElevation(8.dp),
-            ) {
+            .padding(16.dp,0.dp)) {
+
                 PlacesAutocompleteTextField(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -93,9 +92,7 @@ fun MapUi(viewModel: MapViewModel, context: Context) {
                         viewModel.updateCityName("${place.primaryText}, ${place.secondaryText ?: ""}")
                     },
                 )
-            }
         }
-
         // City & Coordinates Info
         Card(
             modifier = Modifier
@@ -107,43 +104,27 @@ fun MapUi(viewModel: MapViewModel, context: Context) {
             colors = CardDefaults.cardColors(containerColor = Color.White)
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    androidx.compose.material3.Icon(Icons.Default.LocationOn, contentDescription = "Location", tint = Color.Red)
+                Row(verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                    Icon(Icons.Default.LocationOn, contentDescription = "Location", tint = Color.Red)
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text(text = "City: $cityName", style = MaterialTheme.typography.bodyMedium)
+                    Text(text = "City: $cityName", style = MaterialTheme.typography.bodyMedium,
+                        color = Color.Black,)
                 }
+                Spacer(modifier = Modifier.height(8.dp))
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Button(onClick = {
+                        viewModel.saveLocation(selectedLocation)
+                    }) {
+                        Icon(Icons.Default.Save, contentDescription = "Save City")
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text("Add to Favorites")
+                    }
+                    Spacer(modifier = Modifier.width(8.dp))
+                }
+
                 Spacer(modifier = Modifier.height(4.dp))
             }
         }
     }
 }
-//    GoogleMap(
-//        modifier = Modifier.fillMaxSize(),
-//        cameraPositionState = cameraPositionState,
-//        onMapClick = { latLng ->
-//            viewModel.selectLocation(latLng)
-//            viewModel.getCityName(latLng)
-//        }
-//    ) {
-//        Marker(
-//            state = markerState
-//        )
-//    }
-//    PlacesAutocompleteTextField(
-//        modifier = Modifier.fillMaxWidth(),
-//        searchText = searchQuery,
-//        predictions = predictions.map { it.toPlaceDetails() },
-//        onQueryChanged = {
-//            viewModel.updateSearchQuery(it)
-//        },
-//        onSelected = { autocompletePlace: AutocompletePlace ->
-//            viewModel.getCoordinates(autocompletePlace.primaryText.toString()+","+autocompletePlace.secondaryText.toString())
-//            viewModel.updateCityName(autocompletePlace.primaryText.toString()+","+autocompletePlace.secondaryText.toString())
-//        },
-//    )
-//    Card {
-//        Text(text = "City Name: $cityName")
-//        Text(text = "Selected Location: ${selectedLocation?.latitude}, ${selectedLocation?.longitude}")
-//    }
-//
-//}

@@ -10,6 +10,7 @@ import com.google.android.libraries.places.api.model.AutocompletePrediction
 import com.google.android.libraries.places.api.model.PlaceTypes
 import com.google.android.libraries.places.api.net.PlacesClient
 import com.google.android.libraries.places.api.net.kotlin.awaitFindAutocompletePredictions
+import com.mario.skyeye.data.models.FavoriteLocation
 import com.mario.skyeye.data.repo.Repo
 import com.mario.skyeye.locationState
 import kotlinx.coroutines.FlowPreview
@@ -18,6 +19,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
@@ -99,6 +101,16 @@ class MapViewModel (private val repo: Repo, private val placesClient: PlacesClie
                 if (it != null) {
                     _cityName.value = it[0].name
                 }
+            }
+        }
+    }
+    fun saveLocation(latLng: LatLng?){
+        viewModelScope.launch {
+            if (latLng != null){
+                val currentWeatherResponse = repo.getCurrentWeather(true, latLng.latitude, latLng.longitude)?.first()
+                repo.insertLocation(FavoriteLocation(cityName.value, latLng.latitude, latLng.longitude, currentWeatherResponse!!, repo.getWeatherForecast(true, latLng.latitude, latLng.longitude)?.first()!!))
+            }else{
+                Log.i("TAG", "saveLocation: Location is null")
             }
         }
     }

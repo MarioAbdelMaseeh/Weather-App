@@ -9,6 +9,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.google.android.libraries.places.api.Places
 import com.mario.skyeye.BuildConfig
+import com.mario.skyeye.data.local.AppDataBase
+import com.mario.skyeye.data.local.LocalDataSourceImpl
 import com.mario.skyeye.data.remote.RemoteDataSourceImpl
 import com.mario.skyeye.data.remote.RetrofitHelper
 import com.mario.skyeye.data.repo.RepoImpl
@@ -33,12 +35,13 @@ fun SetupNavHost(navHostController: NavHostController){
     ) {
         composable<HomeScreen> {
             HomeScreenUI(viewModel(
-                factory = HomeFactory(RepoImpl.getInstance(RemoteDataSourceImpl(RetrofitHelper.service)))
+                factory = HomeFactory(RepoImpl.getInstance(RemoteDataSourceImpl(RetrofitHelper.service),LocalDataSourceImpl(AppDataBase.getInstance(navHostController.context).weatherDao())))
             ))
         }
         composable<FavoritesScreen> {
             FavoritesScreenUI(viewModel(
-                factory = FavoritesFactory(RepoImpl.getInstance(RemoteDataSourceImpl(RetrofitHelper.service)))
+                factory = FavoritesFactory(RepoImpl.getInstance(RemoteDataSourceImpl(RetrofitHelper.service),
+                    LocalDataSourceImpl(AppDataBase.getInstance(navHostController.context).weatherDao())))
             ),
                 navToMap = { navHostController.navigate(MapScreen) })
         }
@@ -51,7 +54,7 @@ fun SetupNavHost(navHostController: NavHostController){
         composable<MapScreen> {
             Places.initializeWithNewPlacesApiEnabled(navHostController.context, BuildConfig.MAPS_API_KEY)
             MapUi(viewModel(
-                factory = MapFactory(RepoImpl.getInstance(RemoteDataSourceImpl(RetrofitHelper.service)),
+                factory = MapFactory(RepoImpl.getInstance(RemoteDataSourceImpl(RetrofitHelper.service),LocalDataSourceImpl(AppDataBase.getInstance(navHostController.context).weatherDao())),
                     Places.createClient(navHostController.context))
             ),context = navHostController.context)
 

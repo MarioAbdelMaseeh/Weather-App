@@ -1,9 +1,5 @@
 package com.mario.skyeye.data.models
 
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
-
 data class WeatherForecast(
     val city: City,
     val cnt: Int,
@@ -31,7 +27,7 @@ data class WeatherForecast(
         val sys: Sys,
         val visibility: Int,
         val weather: List<Weather>,
-        val wind: com.mario.skyeye.data.models.Wind
+        val wind:Wind
     )
 
     data class Coord(

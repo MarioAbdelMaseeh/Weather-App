@@ -1,6 +1,7 @@
 package com.mario.skyeye.data.repo
 
 import com.mario.skyeye.data.models.CurrentWeatherResponse
+import com.mario.skyeye.data.models.FavoriteLocation
 import com.mario.skyeye.data.models.GeoCoderResponse
 import com.mario.skyeye.data.models.GeoCoderResponseItem
 import com.mario.skyeye.data.models.WeatherForecast
@@ -11,6 +12,7 @@ interface Repo {
     suspend fun getWeatherForecast(isOnline: Boolean, lat: Double, lon: Double): Flow<WeatherForecast?>?
     suspend fun getCityName( lat: Double, lon: Double): Flow<GeoCoderResponse?>?
     suspend fun getCoordinates( q: String): Flow<GeoCoderResponse?>?
-
-
+    suspend fun getAllLocations(): Flow<List<FavoriteLocation?>?>
+    suspend fun deleteLocation(favoriteLocation: FavoriteLocation): Int
+    suspend fun insertLocation(favoriteLocation: FavoriteLocation): Long
 }
