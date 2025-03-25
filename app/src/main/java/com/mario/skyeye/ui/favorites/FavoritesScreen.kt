@@ -22,6 +22,7 @@ import androidx.compose.material.icons.filled.Map
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
@@ -67,14 +68,17 @@ fun FavoritesScreenUI(viewModel: FavoritesViewModel, navToMap: () -> Unit) {
                 },
                 shape = androidx.compose.foundation.shape.CircleShape,
                 containerColor = Color(0xFF007AFF),
-                modifier = Modifier.size(70.dp)
+                modifier = Modifier.size(70.dp),
+                contentColor = Color.White,
+                elevation = FloatingActionButtonDefaults.elevation(8.dp),
             ) {
                 Icon(imageVector = Icons.Default.Map, contentDescription = "Add")
             }
         }
-        ) {
+        ) {paddingValues ->
         Box(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier.fillMaxSize()
+                .padding(paddingValues),
         ) {
             Column(
                 modifier = Modifier.fillMaxWidth(),
@@ -104,9 +108,8 @@ fun FavoritesScreenUI(viewModel: FavoritesViewModel, navToMap: () -> Unit) {
                 LazyColumn(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(16.dp, 0.dp)
+                        .padding(16.dp, 8.dp)
                 ) {
-
                     items(favoriteLocations?.size ?: 0,
                         key = { index -> favoriteLocations?.get(index)?.cityName ?: "" }) { index ->
                         val location = favoriteLocations?.get(index)
