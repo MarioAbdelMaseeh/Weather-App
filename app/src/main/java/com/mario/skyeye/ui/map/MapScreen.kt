@@ -63,7 +63,6 @@ fun MapUi(viewModel: MapViewModel, context: Context) {
         }
     }
     Box(modifier = Modifier.fillMaxSize()) {
-        // Google Map
         GoogleMap(
             modifier = Modifier.matchParentSize(),
             cameraPositionState = cameraPositionState,
@@ -75,7 +74,6 @@ fun MapUi(viewModel: MapViewModel, context: Context) {
             Marker(state = markerState)
         }
 
-        // Search Box
         Column(modifier = Modifier
             .fillMaxWidth()
             .padding(16.dp,0.dp)) {
@@ -93,7 +91,6 @@ fun MapUi(viewModel: MapViewModel, context: Context) {
                     },
                 )
         }
-        // City & Coordinates Info
         Card(
             modifier = Modifier
                 .align(Alignment.BottomCenter)

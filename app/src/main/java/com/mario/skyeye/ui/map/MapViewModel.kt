@@ -32,7 +32,7 @@ class MapViewModel (private val repo: Repo, private val placesClient: PlacesClie
     private val _predictions = MutableStateFlow<List<AutocompletePrediction>>(emptyList())
     val predictions = _predictions.asStateFlow()
 
-    private val _selectedLocation = MutableStateFlow<LatLng?>(null)
+    private val _selectedLocation = MutableStateFlow(LatLng(locationState.value.latitude, locationState.value.longitude))
     val selectedLocation = _selectedLocation.asStateFlow()
 
     private val _cityName = MutableStateFlow("")
