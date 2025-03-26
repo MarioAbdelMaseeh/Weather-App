@@ -22,12 +22,9 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.LocationCity
-import androidx.compose.material.icons.filled.Map
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
@@ -42,6 +39,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -65,32 +63,14 @@ import kotlinx.coroutines.delay
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
-fun FavoritesScreenUI(viewModel: FavoritesViewModel, navToMap: () -> Unit) {
+fun FavoritesScreenUI(
+    viewModel: FavoritesViewModel,
+    snackbarHostState: SnackbarHostState
+) {
     val favoriteLocations by viewModel.favoriteLocations.collectAsStateWithLifecycle()
-    val snackbarHostState = remember { SnackbarHostState() }
     viewModel.fetchFavoriteLocations()
-    Scaffold(
-        snackbarHost = {
-            SnackbarHost(hostState = snackbarHostState)
-        },
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick = {
-                    navToMap()
-                },
-                shape = androidx.compose.foundation.shape.CircleShape,
-                containerColor = Color(0xFF007AFF),
-                modifier = Modifier.size(70.dp),
-                contentColor = Color.White,
-                elevation = FloatingActionButtonDefaults.elevation(8.dp),
-            ) {
-                Icon(imageVector = Icons.Default.Map, contentDescription = "Add")
-            }
-        }
-        ) {paddingValues ->
         Box(
             modifier = Modifier.fillMaxSize()
-                .padding(paddingValues),
         ) {
             Column(
                 modifier = Modifier.fillMaxWidth(),
@@ -158,7 +138,6 @@ fun FavoritesScreenUI(viewModel: FavoritesViewModel, navToMap: () -> Unit) {
             }
         }
     }
-}
 
 @Composable
 fun FavoriteLocationItem(location: FavoriteLocation) {

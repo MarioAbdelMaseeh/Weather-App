@@ -7,15 +7,16 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 
 class RemoteDataSourceImpl(private val service: APIService) : RemoteDataSource {
-    override suspend fun getCurrentWeather(lat: Double, lon: Double): Flow<CurrentWeatherResponse?>? {
-        return flowOf(service.getCurrentWeather(lat,lon))
+    override suspend fun getCurrentWeather(lat: Double, lon: Double, units: String): Flow<CurrentWeatherResponse?>? {
+        return flowOf(service.getCurrentWeather(lat,lon, units = units))
     }
 
     override suspend fun getWeatherForecast(
         lat: Double,
-        lon: Double
+        lon: Double,
+        units: String
     ): Flow<WeatherForecast?>? {
-        return flowOf(service.getWeatherForecast(lat,lon))
+        return flowOf(service.getWeatherForecast(lat,lon, units = units))
     }
 
     override suspend fun getCityName(

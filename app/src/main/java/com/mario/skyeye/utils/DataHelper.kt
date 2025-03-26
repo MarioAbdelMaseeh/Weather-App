@@ -1,8 +1,14 @@
 package com.mario.skyeye.utils
 
 import android.content.Context
+import android.os.Build
+import androidx.annotation.RequiresApi
 import com.mario.skyeye.R
 import java.text.SimpleDateFormat
+import java.time.Instant
+import java.time.LocalDate
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 import java.util.Date
 import java.util.Locale
 import java.util.concurrent.TimeUnit
@@ -42,4 +48,18 @@ fun getRelativeTime(timestamp: Int , context: Context): String {
             format.format(date)
         }
     }
+}
+@RequiresApi(Build.VERSION_CODES.O)
+fun getHourFormTime(timestamp: Long): String {
+    val time = Instant.ofEpochSecond(timestamp)
+        .atZone(ZoneId.systemDefault())
+        .toLocalTime()
+    return time.format(DateTimeFormatter.ofPattern("hh:mm a"))
+}
+
+@RequiresApi(Build.VERSION_CODES.O)
+fun getDayName(dateString: String): String {
+    val formatter = DateTimeFormatter.ofPattern("yyyyMMdd", Locale.ENGLISH)
+    val localDate = LocalDate.parse(dateString, formatter)
+    return localDate.dayOfWeek.getDisplayName(java.time.format.TextStyle.FULL, Locale.ENGLISH)
 }

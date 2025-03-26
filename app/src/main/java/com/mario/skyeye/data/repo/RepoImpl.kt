@@ -24,23 +24,24 @@ class RepoImpl private constructor(
         }
     }
 
-    override suspend fun getCurrentWeather(isOnline: Boolean, lat: Double, lon: Double): Flow<CurrentWeatherResponse?>? {
+    override suspend fun getCurrentWeather(isOnline: Boolean, lat: Double, lon: Double, units: String): Flow<CurrentWeatherResponse?>? {
         return if (isOnline) {
-            remoteDataSource.getCurrentWeather(lat,lon)
+            remoteDataSource.getCurrentWeather(lat,lon, units)
         } else {
-            remoteDataSource.getCurrentWeather(lat,lon)
+            remoteDataSource.getCurrentWeather(lat,lon, units)
         }
     }
 
     override suspend fun getWeatherForecast(
         isOnline: Boolean,
         lat: Double,
-        lon: Double
+        lon: Double,
+        units: String
     ): Flow<WeatherForecast?>? {
         return if (isOnline) {
-            remoteDataSource.getWeatherForecast(lat,lon)
+            remoteDataSource.getWeatherForecast(lat,lon, units)
         } else {
-            remoteDataSource.getWeatherForecast(lat,lon)
+            remoteDataSource.getWeatherForecast(lat,lon, units)
         }
     }
 

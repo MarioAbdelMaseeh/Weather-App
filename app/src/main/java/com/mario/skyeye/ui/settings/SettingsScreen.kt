@@ -22,24 +22,24 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.mario.skyeye.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SettingsScreen() {
-    var selectedTemp by remember { mutableStateOf("°C") }
-    var selectedWindSpeed by remember { mutableStateOf("m/s") }
-    var selectedLanguage by remember { mutableStateOf("English") }
-    var selectedLocation by remember { mutableStateOf("GPS") }
-    var selectedTheme by remember { mutableStateOf("System") }
+fun SettingsScreen(viewModel: SettingsViewModel) {
+    val selectedWindSpeed by viewModel.selectedWindSpeed.collectAsStateWithLifecycle()
+    val selectedLanguage by viewModel.selectedLanguage.collectAsStateWithLifecycle()
+    val selectedLocation by viewModel.selectedLocation.collectAsStateWithLifecycle()
+    val selectedTheme by viewModel.selectedTheme.collectAsStateWithLifecycle()
+    val selectedTemp by viewModel.selectedTemp.collectAsStateWithLifecycle()
 
     Column(
         modifier = Modifier
@@ -50,61 +50,81 @@ fun SettingsScreen() {
             verticalAlignment = Alignment.CenterVertically,
         ) {
             IconButton(onClick = { /* Handle back navigation */ }) {
-                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back))
             }
             Spacer(modifier = Modifier.height(16.dp))
-            Text("Settings", fontWeight = FontWeight.Bold, fontSize = 24.sp)
+            Text(stringResource(R.string.settings), fontWeight = FontWeight.Bold, fontSize = 24.sp)
         }
         Column(
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier
+                .fillMaxWidth()
                 .padding(16.dp)
         ) {
             // Temperature Unit Selection
-            SettingsCategory(title = "Temperature") {
+            SettingsCategory(title = stringResource(R.string.temperature)) {
                 ToggleButtonGroup(
-                    options = listOf("°C", "°F", "°K"),
+                    options = listOf(
+                        stringResource(R.string.celsius),
+                        stringResource(R.string.fahrenheit),
+                        stringResource(R.string.kelvin)
+                    ),
                     selectedOption = selectedTemp,
-                    onOptionSelected = { selectedTemp = it }
+                    onOptionSelected = { viewModel.updatePreference("temp_unit", it) }
                 )
             }
 
             // Wind Speed Selection
-            SettingsCategory(title = "Wind speed") {
+            SettingsCategory(title = stringResource(R.string.wind_speed)) {
                 ToggleButtonGroup(
-                    options = listOf("m/s", "km/h", "mph"),
+                    options = listOf(
+                        stringResource(R.string.meters_per_second),
+                        stringResource(R.string.kilometers_per_hour),
+                        stringResource(R.string.miles_per_hour)
+                    ),
                     selectedOption = selectedWindSpeed,
-                    onOptionSelected = { selectedWindSpeed = it }
-                )
-            }
-            SettingsCategory(title = "Language") {
-                ToggleButtonGroup(
-                    options = listOf("Arabic", "English"),
-                    selectedOption = selectedLanguage,
-                    onOptionSelected = { selectedLanguage = it }
+                    onOptionSelected = { viewModel.updatePreference("wind_unit", it) }
                 )
             }
 
-            SettingsCategory(title = "Location") {
+            // Language Selection
+            SettingsCategory(title = stringResource(R.string.language)) {
                 ToggleButtonGroup(
-                    options = listOf("GPS", "Map"),
+                    options = listOf(
+                        stringResource(R.string.arabic),
+                        stringResource(R.string.english)
+                    ),
+                    selectedOption = selectedLanguage,
+                    onOptionSelected = { viewModel.updatePreference("language", it) }
+                )
+            }
+
+            // Location Selection
+            SettingsCategory(title = stringResource(R.string.location)) {
+                ToggleButtonGroup(
+                    options = listOf(
+                        stringResource(R.string.gps),
+                        stringResource(R.string.map)
+                    ),
                     selectedOption = selectedLocation,
-                    onOptionSelected = { selectedLocation = it }
+                    onOptionSelected = { viewModel.updatePreference("location", it) }
                 )
             }
 
             // Theme Selection
-            SettingsCategory(title = "Theme") {
+            SettingsCategory(title = stringResource(R.string.theme)) {
                 ToggleButtonGroup(
-                    options = listOf("System", "Light", "Dark"),
+                    options = listOf(
+                        stringResource(R.string.system),
+                        stringResource(R.string.light),
+                        stringResource(R.string.dark)
+                    ),
                     selectedOption = selectedTheme,
-                    onOptionSelected = { selectedTheme = it }
+                    onOptionSelected = { viewModel.updatePreference("theme", it) }
                 )
             }
         }
-
     }
 }
-
 
 @Composable
 fun SettingsCategory(title: String, content: @Composable () -> Unit) {

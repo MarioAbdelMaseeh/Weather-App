@@ -88,8 +88,8 @@ fun MapUi(viewModel: MapViewModel, context: Context) {
                     onQueryChanged = { viewModel.updateSearchQuery(it) },
                     onSelected = { place: AutocompletePlace ->
                         Log.i("TAG", "MapUi: ${place.primaryText}, ${place.secondaryText}")
-                        viewModel.getCoordinates("${place.primaryText}, ${place.secondaryText ?: ""}")
-                        viewModel.updateCityName("${place.primaryText}, ${place.secondaryText ?: ""}")
+                        viewModel.getCoordinates("${place.primaryText}, ${place.secondaryText}")
+                        viewModel.updateCityName("${place.primaryText}, ${place.secondaryText}")
                     },
                 )
         }

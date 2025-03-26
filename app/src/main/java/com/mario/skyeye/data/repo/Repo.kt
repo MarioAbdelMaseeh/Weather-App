@@ -8,8 +8,8 @@ import com.mario.skyeye.data.models.WeatherForecast
 import kotlinx.coroutines.flow.Flow
 
 interface Repo {
-    suspend fun getCurrentWeather(isOnline: Boolean, lat: Double, lon: Double): Flow<CurrentWeatherResponse?>?
-    suspend fun getWeatherForecast(isOnline: Boolean, lat: Double, lon: Double): Flow<WeatherForecast?>?
+    suspend fun getCurrentWeather(isOnline: Boolean, lat: Double, lon: Double, units: String): Flow<CurrentWeatherResponse?>?
+    suspend fun getWeatherForecast(isOnline: Boolean, lat: Double, lon: Double, units: String): Flow<WeatherForecast?>?
     suspend fun getCityName( lat: Double, lon: Double): Flow<GeoCoderResponse?>?
     suspend fun getCoordinates( q: String): Flow<GeoCoderResponse?>?
     suspend fun getAllLocations(): Flow<List<FavoriteLocation?>?>

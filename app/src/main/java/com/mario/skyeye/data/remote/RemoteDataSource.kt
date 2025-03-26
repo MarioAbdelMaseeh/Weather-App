@@ -6,8 +6,8 @@ import com.mario.skyeye.data.models.WeatherForecast
 import kotlinx.coroutines.flow.Flow
 
 interface RemoteDataSource {
-    suspend fun getCurrentWeather(lat: Double, lon: Double): Flow<CurrentWeatherResponse?>?
-    suspend fun getWeatherForecast(lat: Double, lon: Double): Flow<WeatherForecast?>?
+    suspend fun getCurrentWeather(lat: Double, lon: Double, units: String): Flow<CurrentWeatherResponse?>?
+    suspend fun getWeatherForecast(lat: Double, lon: Double, units: String): Flow<WeatherForecast?>?
     suspend fun getCityName(lat: Double, lon: Double): Flow<GeoCoderResponse?>?
     suspend fun getCoordinates(q: String): Flow<GeoCoderResponse?>?
 }
