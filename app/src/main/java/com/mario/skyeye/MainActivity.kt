@@ -17,10 +17,16 @@ import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Map
 import androidx.compose.material3.BottomAppBar
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
@@ -31,6 +37,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -47,13 +54,20 @@ import com.mario.skyeye.navigation.ScreensRoutes
 import com.mario.skyeye.navigation.SetupNavHost
 const val REQUEST_CODE_LOCATION = 5005
 lateinit var locationState: MutableState<Location>
+
 class MainActivity : ComponentActivity() {
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private lateinit var geocoder: Geocoder
+    lateinit var showMap : MutableState<Boolean>
+    lateinit var message : MutableState<String>
+    lateinit var snackbarHostState: SnackbarHostState
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
+            snackbarHostState = remember { SnackbarHostState() }
+            showMap = remember { mutableStateOf(false) }
+            message = remember { mutableStateOf("") }
             locationState = remember { mutableStateOf(Location(LocationManager.GPS_PROVIDER))}
             geocoder = Geocoder(this)
             MainUi()
@@ -96,6 +110,7 @@ class MainActivity : ComponentActivity() {
         )
 
         Scaffold(
+            snackbarHost = { SnackbarHost(snackbarHostState) },
             bottomBar = { BottomAppBar{
                     items.forEachIndexed { index,item ->
                         NavigationBarItem(
@@ -122,11 +137,27 @@ class MainActivity : ComponentActivity() {
                         )
                     }
                 }
+            },
+            floatingActionButton = {
+                if (showMap.value){
+                    FloatingActionButton(
+                        onClick = {
+                            navController.navigate(ScreensRoutes.MapScreen)
+                        },
+                        shape = androidx.compose.foundation.shape.CircleShape,
+                        containerColor = Color(0xFF007AFF),
+                        modifier = Modifier.size(60.dp),
+                        contentColor = Color.White,
+                        elevation = FloatingActionButtonDefaults.elevation(8.dp),
+                    ) {
+                        Icon(imageVector = Icons.Default.Map, contentDescription = "Add")
+                    }
+                }
             }
         ) {
             innerPadding ->
             Box(modifier = Modifier.padding(innerPadding)) {
-                SetupNavHost(navController)
+                SetupNavHost(navController, showMap, snackbarHostState)
             }
         }
     }
@@ -180,7 +211,7 @@ class MainActivity : ComponentActivity() {
             getSystemService(LOCATION_SERVICE) as LocationManager
         return locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER) || locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)
     }
-    fun getLocation() {
+    fun getLocation(){
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
        val locationRequest = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY,1000)
            .setWaitForAccurateLocation(true)

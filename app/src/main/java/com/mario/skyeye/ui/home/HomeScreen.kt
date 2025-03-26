@@ -22,16 +22,19 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.mario.skyeye.R
 import com.mario.skyeye.data.models.CurrentWeatherResponse
@@ -39,6 +42,9 @@ import com.mario.skyeye.data.models.Response
 import com.mario.skyeye.data.models.WeatherForecast
 import com.mario.skyeye.locationState
 import com.mario.skyeye.ui.WeatherIconMapper
+import com.mario.skyeye.utils.getDayName
+import com.mario.skyeye.utils.getHourFormTime
+import com.mario.skyeye.utils.getRelativeTime
 import java.text.DateFormat
 import java.text.SimpleDateFormat
 import java.time.Instant
@@ -54,7 +60,7 @@ import java.util.Locale
 fun HomeScreenUI(viewModel: HomeViewModel) {
     val currentWeatherResponse = viewModel.currentWeatherState.collectAsState()
     val weatherForecastResponse = viewModel.weatherForecastState.collectAsState()
-    LaunchedEffect(locationState.value) {
+    LaunchedEffect(Unit ) {
         viewModel.getCurrentWeather(locationState.value.latitude, locationState.value.longitude)
         viewModel.getWeatherForecast(locationState.value.latitude, locationState.value.longitude)
     }
@@ -75,7 +81,7 @@ fun HomeScreenUI(viewModel: HomeViewModel) {
                 modifier = Modifier.fillMaxSize(),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
-            ) {
+            ){
                 item {
                     when (currentWeatherResponse.value) {
                         is Response.Loading -> {
@@ -93,9 +99,9 @@ fun HomeScreenUI(viewModel: HomeViewModel) {
                             val currentWeatherResponse =
                                 (currentWeatherResponse.value as Response.Success<CurrentWeatherResponse?>).data
                             Row(
-                                verticalAlignment = Alignment.CenterVertically,
+                                verticalAlignment = Alignment.Top,
                                 horizontalArrangement = Arrangement.Center
-                            ) {
+                            ){
                                 Image(
                                     painter = painterResource(id = R.drawable.marker),
                                     contentDescription = "Location Icon",
@@ -114,7 +120,7 @@ fun HomeScreenUI(viewModel: HomeViewModel) {
                                     fontWeight = FontWeight.Bold
                                 )
                             }
-                            CurrentWeatherBox(currentWeatherResponse)
+                            CurrentWeatherBox(currentWeatherResponse, viewModel.tempUnit)
                             Spacer(modifier = Modifier.size(16.dp))
                             WeatherDetailsBox(currentWeatherResponse)
                         }
@@ -140,18 +146,19 @@ fun HomeScreenUI(viewModel: HomeViewModel) {
                                 }
                             }
                         }
-
                         is Response.Success -> {
                             val weatherForecastResponse =
                                 (weatherForecastResponse.value as Response.Success<WeatherForecast>).data
                             val forecastDays = weatherForecastResponse.forecastDaysHelper()
-                            Column {
+                            Column(
+                                modifier = Modifier.fillMaxWidth()
+                            ){
                                 Text(
                                     text = "Hourly Forecast",
                                     color = colorResource(id = R.color.black),
                                     fontSize = 24.sp,
                                     fontWeight = FontWeight.Bold,
-                                    modifier = Modifier.padding(16.dp,8.dp)
+                                    modifier = Modifier.padding(16.dp,0.dp)
                                 )
                                 LazyRow(
                                     modifier = Modifier.padding(8.dp)
@@ -173,7 +180,27 @@ fun HomeScreenUI(viewModel: HomeViewModel) {
                                                     )
                                                     .padding(8.dp)
                                             ) {
-                                                HourlyForecastItem(forecast)
+                                                HourlyForecastItem(forecast, viewModel.tempUnit)
+                                            }
+                                        }
+                                        forecastDays.entries.elementAt(1)
+                                            .value.forEach { forecast ->
+                                            Box(
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .padding(8.dp, 16.dp)
+                                                    .background(
+                                                        brush = Brush.horizontalGradient(
+                                                            colors = listOf(
+                                                                colorResource(id = R.color.teal_700),
+                                                                colorResource(id = R.color.teal_700)
+                                                            )
+                                                        ),
+                                                        shape = RoundedCornerShape(16.dp)
+                                                    )
+                                                    .padding(8.dp)
+                                            ) {
+                                                HourlyForecastItem(forecast, viewModel.tempUnit)
                                             }
                                         }
                                     }
@@ -205,7 +232,7 @@ fun HomeScreenUI(viewModel: HomeViewModel) {
                             ) {
                                 Column {
                                     forecastDays.entries.forEach { (date, forecastList) ->
-                                        ForecastDay(date, forecastList)
+                                        ForecastDay(date, forecastList, viewModel.tempUnit)
                                     }
                                 }
                             }
@@ -219,13 +246,16 @@ fun HomeScreenUI(viewModel: HomeViewModel) {
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun HourlyForecastItem(x0: WeatherForecast.Item0) {
+fun HourlyForecastItem(x0: WeatherForecast.Item0, unit: String) {
 
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        Text(text = getHourFormTime(x0.dt.toLong()))
+        Text(text = getHourFormTime(x0.dt.toLong()),
+            color = colorResource(id = R.color.black),
+            fontSize = 16.sp,
+        )
         Image(
             painter = painterResource(
                 id = WeatherIconMapper.getWeatherIcon(
@@ -235,13 +265,16 @@ fun HourlyForecastItem(x0: WeatherForecast.Item0) {
             contentDescription = "Weather Icon",
             modifier = Modifier.size(30.dp)
         )
-        Text(text = "${x0.main.temp.toInt()}°C")
+        Text(text = "${x0.main.temp.toInt()}$unit",
+            color = colorResource(id = R.color.black),
+            fontSize = 16.sp,
+            fontWeight = FontWeight.Bold)
     }
 }
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun ForecastDay(date: Int, forecastList: List<WeatherForecast.Item0>) {
+fun ForecastDay(date: Int, forecastList: List<WeatherForecast.Item0>, unit: String) {
 
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -300,7 +333,7 @@ fun ForecastDay(date: Int, forecastList: List<WeatherForecast.Item0>) {
         )
         Spacer(modifier = Modifier.size(8.dp))
         Text(
-            text = "$maxTemp/$minTemp°C",
+            text = "$maxTemp/$minTemp$unit",
             color = colorResource(id = R.color.black),
             fontSize = 16.sp,
             modifier = Modifier.width(70.dp),
@@ -309,8 +342,6 @@ fun ForecastDay(date: Int, forecastList: List<WeatherForecast.Item0>) {
         Spacer(modifier = Modifier.size(8.dp))
     }
 }
-
-
 fun WeatherForecast.forecastDaysHelper(): Map<Int, List<WeatherForecast.Item0>> {
     val forecastMap = mutableMapOf<Int, MutableList<WeatherForecast.Item0>>()
     val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
@@ -408,7 +439,7 @@ private fun SmallBox(icon: Int?, name: String?, value: String?, measuringUnit: S
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-private fun CurrentWeatherBox(response: CurrentWeatherResponse?) {
+private fun CurrentWeatherBox(response: CurrentWeatherResponse?, unit: String) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -461,18 +492,17 @@ private fun CurrentWeatherBox(response: CurrentWeatherResponse?) {
                     modifier = Modifier.size(8.dp)
                 )
                 Text(
-                    text = "${response?.main?.temp?.toInt() ?: "No Data"}°C",
+                    text = "${response?.main?.temp?.toInt() ?: "No Data"}${unit}",
                     color = colorResource(id = R.color.black),
                     fontSize = 40.sp,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.fillMaxSize(),
                     textAlign = TextAlign.Center
-
                 )
                 Text(
                     text = "Feels like ${
                         response?.main?.feelsLike?.toInt() ?: "No Data"
-                    }°C",
+                    }${unit}",
                     color = colorResource(id = R.color.black),
                     fontSize = 16.sp,
                 )
@@ -481,24 +511,12 @@ private fun CurrentWeatherBox(response: CurrentWeatherResponse?) {
                 )
                 var myDate = Date()
                 Text(
-                    text = DateFormat.getDateInstance(DateFormat.FULL).format(myDate),
+                    text = DateFormat.getDateInstance(DateFormat.FULL).format(myDate)
                 )
+                Text("Last updated: ${getRelativeTime(response?.dt ?: 0 , LocalContext.current)}")
             }
         }
     }
 }
 
-@RequiresApi(Build.VERSION_CODES.O)
-fun getHourFormTime(timestamp: Long): String {
-    val time = Instant.ofEpochSecond(timestamp)
-        .atZone(ZoneId.systemDefault())
-        .toLocalTime()
-    return time.format(DateTimeFormatter.ofPattern("hh:mm a"))
-}
 
-@RequiresApi(Build.VERSION_CODES.O)
-fun getDayName(dateString: String): String {
-    val formatter = DateTimeFormatter.ofPattern("yyyyMMdd", Locale.ENGLISH)
-    val localDate = LocalDate.parse(dateString, formatter)
-    return localDate.dayOfWeek.getDisplayName(java.time.format.TextStyle.FULL, Locale.ENGLISH)
-}

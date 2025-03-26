@@ -1,5 +1,6 @@
 package com.mario.skyeye.ui.home
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -7,6 +8,8 @@ import com.mario.skyeye.data.models.CurrentWeatherResponse
 import com.mario.skyeye.data.models.Response
 import com.mario.skyeye.data.models.WeatherForecast
 import com.mario.skyeye.data.repo.Repo
+import com.mario.skyeye.data.sharedprefrence.PreferencesManager
+import com.mario.skyeye.utils.getUnitType
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -18,17 +21,16 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
 
 class HomeViewModel(private val repo: Repo): ViewModel(){
+    val tempUnit = PreferencesManager.getPreference("temp_unit", "°C")
     private val _currentWeatherState: MutableStateFlow<Response<CurrentWeatherResponse?>> = MutableStateFlow(Response.Loading)
     val currentWeatherState: StateFlow<Response<CurrentWeatherResponse?>> = _currentWeatherState.asStateFlow()
     private val _weatherForecastState: MutableStateFlow<Response<WeatherForecast?>> = MutableStateFlow(Response.Loading)
     val weatherForecastState: StateFlow<Response<WeatherForecast?>> = _weatherForecastState.asStateFlow()
-    private val _message: MutableSharedFlow<String> = MutableSharedFlow()
-    val message: SharedFlow<String> = _message.asSharedFlow()
 
     fun getCurrentWeather(lat: Double, lon: Double) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                val response = repo.getCurrentWeather(true, lat, lon)
+                val response = repo.getCurrentWeather(true, lat, lon,getUnitType(tempUnit))
                 response?.catch { e ->
                     _currentWeatherState.value = Response.Failure(e)
                 }?.collect { weatherResponse ->
@@ -47,7 +49,7 @@ class HomeViewModel(private val repo: Repo): ViewModel(){
     fun getWeatherForecast(lat: Double, lon: Double) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                val response = repo.getWeatherForecast(true, lat, lon)
+                val response = repo.getWeatherForecast(true, lat, lon, getUnitType(tempUnit))
                 response?.catch { e ->
                     _weatherForecastState.value = Response.Failure(e)
                 }?.collect { weatherForecast ->

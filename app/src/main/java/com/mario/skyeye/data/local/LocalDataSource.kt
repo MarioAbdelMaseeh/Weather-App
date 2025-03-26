@@ -1,9 +1,11 @@
 package com.mario.skyeye.data.local
 
-import com.mario.skyeye.data.models.CurrentWeatherResponse
+import com.mario.skyeye.data.models.FavoriteLocation
+import kotlinx.coroutines.flow.Flow
 
 interface LocalDataSource {
-//    suspend fun getCurrentWeather(): CurrentWeatherResponse
-//    suspend fun insert(currentWeatherResponse: CurrentWeatherResponse): Long
-//    suspend fun delete(currentWeatherResponse: CurrentWeatherResponse?): Int
+
+    suspend fun getAllLocations(): Flow<List<FavoriteLocation?>?>
+    suspend fun deleteLocation(favoriteLocation: FavoriteLocation): Int
+    suspend fun insertLocation(favoriteLocation: FavoriteLocation): Long
 }

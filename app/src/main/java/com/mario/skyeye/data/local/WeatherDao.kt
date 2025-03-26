@@ -5,14 +5,17 @@ import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import com.mario.skyeye.data.models.FavoriteLocation
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface WeatherDao {
-//    @Query("SELECT * FROM products")
-//    suspend fun getAllFavProducts(): List<Product>
-//    @Insert(onConflict = OnConflictStrategy.IGNORE)
-//    suspend fun insert(product: Product): Long
-//    @Delete
-//    suspend fun delete(product: Product): Int
 
+
+    @Query("SELECT * FROM favorite_locations")
+    fun getAllFavoriteLocations(): Flow<List<FavoriteLocation?>?>
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insert(favoriteLocation: FavoriteLocation): Long
+    @Delete
+    suspend fun delete(favoriteLocation: FavoriteLocation): Int
 }

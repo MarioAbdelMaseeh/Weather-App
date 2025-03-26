@@ -1,22 +1,20 @@
 package com.mario.skyeye.data.local
 
-import com.mario.skyeye.data.models.CurrentWeatherResponse
+import com.mario.skyeye.data.models.FavoriteLocation
+import kotlinx.coroutines.flow.Flow
 
 class LocalDataSourceImpl (private val weatherDao: WeatherDao): LocalDataSource {
-//    override suspend fun getCurrentWeather(): CurrentWeatherResponse {
-//        return weatherDao.getAllFavProducts()
-//    }
-//
-//    override suspend fun insert(product: Product): Long {
-//        return weatherDao.insert(product)
-//    }
-//
-//    override suspend fun delete(product: Product?): Int {
-//        return if (product != null) {
-//            weatherDao.delete(product)
-//        } else {
-//            -1
-//        }
-//    }
+    override suspend fun getAllLocations(): Flow<List<FavoriteLocation?>?> {
+        return weatherDao.getAllFavoriteLocations()
+    }
+
+    override suspend fun deleteLocation(favoriteLocation: FavoriteLocation): Int {
+        return weatherDao.delete(favoriteLocation)
+    }
+
+    override suspend fun insertLocation(favoriteLocation: FavoriteLocation): Long {
+        return weatherDao.insert(favoriteLocation)
+    }
+
 }
 
