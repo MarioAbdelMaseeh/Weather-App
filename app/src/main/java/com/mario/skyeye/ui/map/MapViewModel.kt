@@ -12,7 +12,7 @@ import com.google.android.libraries.places.api.net.PlacesClient
 import com.google.android.libraries.places.api.net.kotlin.awaitFindAutocompletePredictions
 import com.mario.skyeye.data.models.FavoriteLocation
 import com.mario.skyeye.data.repo.Repo
-import com.mario.skyeye.data.sharedprefrence.PreferencesManager
+import com.mario.skyeye.data.sharedprefrence.AppPreferences
 import com.mario.skyeye.locationState
 import com.mario.skyeye.utils.getUnitType
 import kotlinx.coroutines.FlowPreview
@@ -21,7 +21,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -29,7 +28,7 @@ import kotlinx.coroutines.launch
 import kotlin.time.Duration.Companion.milliseconds
 
 class MapViewModel (private val repo: Repo, private val placesClient: PlacesClient) : ViewModel(){
-    val tempUnit = PreferencesManager.getPreference("temp_unit", "°C")
+    val tempUnit = AppPreferences.getPreference("temp_unit", "°C")
     private val _searchQuery = MutableStateFlow("")
     val searchQuery = _searchQuery.asStateFlow()
 

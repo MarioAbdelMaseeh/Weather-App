@@ -1,17 +1,11 @@
 package com.mario.skyeye.data.sharedprefrence
 
 import android.content.Context
-import android.content.SharedPreferences
 import androidx.core.content.edit
+import com.mario.skyeye.utils.Constants.PREFS_NAME
 
-object PreferencesManager {
-    private const val PREFS_NAME = "app_settings"
-
-    private lateinit var sharedPreferences: SharedPreferences
-
-    fun init(context: Context) {
-        sharedPreferences = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-    }
+class AppPreference(context: Context) {
+    private val sharedPreferences = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 
     fun savePreference(key: String, value: String) {
         sharedPreferences.edit{ putString(key, value) }
