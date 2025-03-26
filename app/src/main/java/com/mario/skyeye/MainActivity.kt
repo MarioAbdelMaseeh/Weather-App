@@ -1,6 +1,7 @@
 package com.mario.skyeye
 
 import android.content.Intent
+import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.location.Geocoder
 import android.location.Location
@@ -49,9 +50,15 @@ import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
+import com.mario.skyeye.data.repo.Repo
+import com.mario.skyeye.enums.Languages
 import com.mario.skyeye.navigation.BottomNavigationItem
 import com.mario.skyeye.navigation.ScreensRoutes
 import com.mario.skyeye.navigation.SetupNavHost
+import com.mario.skyeye.ui.settings.SettingsViewModel
+import com.mario.skyeye.utils.Constants
+import java.util.Locale
+
 const val REQUEST_CODE_LOCATION = 5005
 lateinit var locationState: MutableState<Location>
 
@@ -61,9 +68,12 @@ class MainActivity : ComponentActivity() {
     lateinit var showMap : MutableState<Boolean>
     lateinit var message : MutableState<String>
     lateinit var snackbarHostState: SnackbarHostState
+    private lateinit var sharedPreferences: SharedPreferences
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        sharedPreferences = getSharedPreferences(Constants.PREFS_NAME, MODE_PRIVATE)
+        applyLanguage(sharedPreferences.getString(Constants.LANGUAGE, Languages.ENGLISH.code) ?: "en")
         setContent {
             snackbarHostState = remember { SnackbarHostState() }
             showMap = remember { mutableStateOf(false) }
@@ -232,5 +242,13 @@ class MainActivity : ComponentActivity() {
         if (checkPermission()){
             fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback , Looper.myLooper())
         }
+    }
+    private fun applyLanguage(languageCode: String) {
+        val locale = Locale(languageCode)
+        Locale.setDefault(locale)
+
+        val config = resources.configuration
+        config.setLocale(locale)
+        resources.updateConfiguration(config, resources.displayMetrics)
     }
 }

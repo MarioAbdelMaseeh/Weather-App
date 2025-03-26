@@ -30,6 +30,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -40,6 +41,8 @@ import com.mario.skyeye.R
 import com.mario.skyeye.data.models.CurrentWeatherResponse
 import com.mario.skyeye.data.models.Response
 import com.mario.skyeye.data.models.WeatherForecast
+import com.mario.skyeye.enums.TempUnit
+import com.mario.skyeye.enums.TempUnit.Companion.fromUnitType
 import com.mario.skyeye.locationState
 import com.mario.skyeye.ui.WeatherIconMapper
 import com.mario.skyeye.utils.getDayName
@@ -104,7 +107,7 @@ fun HomeScreenUI(viewModel: HomeViewModel) {
                             ){
                                 Image(
                                     painter = painterResource(id = R.drawable.marker),
-                                    contentDescription = "Location Icon",
+                                    contentDescription = stringResource(R.string.location_icon),
                                     modifier = Modifier
                                         .size(20.dp)
                                         .align(Alignment.CenterVertically)
@@ -120,7 +123,7 @@ fun HomeScreenUI(viewModel: HomeViewModel) {
                                     fontWeight = FontWeight.Bold
                                 )
                             }
-                            CurrentWeatherBox(currentWeatherResponse, viewModel.tempUnit)
+                            CurrentWeatherBox(currentWeatherResponse, fromUnitType(viewModel.tempUnit)?.getSymbol() ?: TempUnit.CELSIUS.getSymbol())
                             Spacer(modifier = Modifier.size(16.dp))
                             WeatherDetailsBox(currentWeatherResponse)
                         }
@@ -154,7 +157,7 @@ fun HomeScreenUI(viewModel: HomeViewModel) {
                                 modifier = Modifier.fillMaxWidth()
                             ){
                                 Text(
-                                    text = "Hourly Forecast",
+                                    text = stringResource(R.string.hourly_forecast),
                                     color = colorResource(id = R.color.black),
                                     fontSize = 24.sp,
                                     fontWeight = FontWeight.Bold,
@@ -180,7 +183,7 @@ fun HomeScreenUI(viewModel: HomeViewModel) {
                                                     )
                                                     .padding(8.dp)
                                             ) {
-                                                HourlyForecastItem(forecast, viewModel.tempUnit)
+                                                HourlyForecastItem(forecast, fromUnitType(viewModel.tempUnit)?.getSymbol() ?: TempUnit.CELSIUS.getSymbol())
                                             }
                                         }
                                         forecastDays.entries.elementAt(1)
@@ -200,18 +203,19 @@ fun HomeScreenUI(viewModel: HomeViewModel) {
                                                     )
                                                     .padding(8.dp)
                                             ) {
-                                                HourlyForecastItem(forecast, viewModel.tempUnit)
+                                                HourlyForecastItem(forecast, fromUnitType(viewModel.tempUnit)?.getSymbol() ?: TempUnit.CELSIUS.getSymbol())
                                             }
                                         }
                                     }
                                 }
                             }
                             Text(
-                                text = "Weekly Forecast",
+                                text = stringResource(R.string.weekly_forecast),
                                 color = colorResource(id = R.color.black),
                                 fontSize = 24.sp,
                                 fontWeight = FontWeight.Bold,
-                                modifier = Modifier.padding(16.dp,8.dp)
+                                modifier = Modifier
+                                    .padding(16.dp, 8.dp)
                                     .fillMaxWidth(),
                                 textAlign = TextAlign.Start
                             )
@@ -232,7 +236,9 @@ fun HomeScreenUI(viewModel: HomeViewModel) {
                             ) {
                                 Column {
                                     forecastDays.entries.forEach { (date, forecastList) ->
-                                        ForecastDay(date, forecastList, viewModel.tempUnit)
+                                        ForecastDay(date, forecastList,
+                                            fromUnitType(viewModel.tempUnit)?.getSymbol() ?: TempUnit.CELSIUS.getSymbol()
+                                        )
                                     }
                                 }
                             }
@@ -262,7 +268,7 @@ fun HourlyForecastItem(x0: WeatherForecast.Item0, unit: String) {
                     x0.weather[0].icon
                 )
             ),
-            contentDescription = "Weather Icon",
+            contentDescription = stringResource(R.string.weather_icon),
             modifier = Modifier.size(30.dp)
         )
         Text(text = "${x0.main.temp.toInt()}$unit",
@@ -382,9 +388,10 @@ fun WeatherDetailsBox(x0: CurrentWeatherResponse?) {
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.Start
             ) {
-                SmallBox(R.drawable.humidity, "Humidity", x0?.main?.humidity.toString(), "%")
+                SmallBox(R.drawable.humidity,
+                    stringResource(R.string.humidity), x0?.main?.humidity.toString(), "%")
                 Spacer(modifier = Modifier.size(8.dp))
-                SmallBox(R.drawable.wind, "Wind Speed", x0?.wind?.speed.toString(), "Km/h")
+                SmallBox(R.drawable.wind, stringResource(R.string.wind_speed), x0?.wind?.speed.toString(), "Km/h")
             }
             Column(
                 verticalArrangement = Arrangement.Center,
@@ -392,20 +399,22 @@ fun WeatherDetailsBox(x0: CurrentWeatherResponse?) {
             ) {
                 SmallBox(
                     R.drawable.clouds,
-                    "Cloudiness",
+                    stringResource(R.string.cloudiness),
                     x0?.clouds?.all.toString(),
                     "%"
                 )
                 Spacer(modifier = Modifier.size(8.dp))
-                SmallBox(R.drawable.eye, "Visibility", x0?.visibility.toString(), "m")
+                SmallBox(R.drawable.eye,
+                    stringResource(R.string.visibility), x0?.visibility.toString(), "m")
             }
             Column {
 
                 val riseTime = getHourFormTime(x0?.sys?.sunrise?.toLong() ?: 0)
                 val setTime = getHourFormTime(x0?.sys?.sunset?.toLong() ?: 0)
-                SmallBox(R.drawable.sunrise_alt, "Sunrise", riseTime.toString(), "")
+                SmallBox(R.drawable.sunrise_alt,
+                    stringResource(R.string.sunrise), riseTime.toString(), "")
                 Spacer(modifier = Modifier.size(8.dp))
-                SmallBox(R.drawable.sunset, "Sunset", setTime.toString(), "")
+                SmallBox(R.drawable.sunset, stringResource(R.string.sunset), setTime.toString(), "")
             }
         }
     }
@@ -500,9 +509,11 @@ private fun CurrentWeatherBox(response: CurrentWeatherResponse?, unit: String) {
                     textAlign = TextAlign.Center
                 )
                 Text(
-                    text = "Feels like ${
-                        response?.main?.feelsLike?.toInt() ?: "No Data"
-                    }${unit}",
+                    text = stringResource(
+                        R.string.feels_like,
+                        response?.main?.feelsLike?.toInt() ?: "No Data",
+                        unit
+                    ),
                     color = colorResource(id = R.color.black),
                     fontSize = 16.sp,
                 )
@@ -513,7 +524,11 @@ private fun CurrentWeatherBox(response: CurrentWeatherResponse?, unit: String) {
                 Text(
                     text = DateFormat.getDateInstance(DateFormat.FULL).format(myDate)
                 )
-                Text("Last updated: ${getRelativeTime(response?.dt ?: 0 , LocalContext.current)}")
+                Text(
+                    stringResource(
+                        R.string.last_updated,
+                        getRelativeTime(response?.dt ?: 0, LocalContext.current)
+                    ))
             }
         }
     }

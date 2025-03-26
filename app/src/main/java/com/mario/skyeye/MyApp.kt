@@ -1,11 +1,13 @@
 package com.mario.skyeye
 
 import android.app.Application
-import com.mario.skyeye.data.sharedprefrence.AppPreferences
+import androidx.compose.ui.platform.LocalContext
+import com.google.android.libraries.places.api.Places
+
 
 class MyApp : Application() {
     override fun onCreate() {
         super.onCreate()
-        AppPreferences.init(this)
+        Places.initializeWithNewPlacesApiEnabled(this, BuildConfig.MAPS_API_KEY)
     }
 }

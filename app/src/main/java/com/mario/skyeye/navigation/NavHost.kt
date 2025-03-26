@@ -5,17 +5,18 @@ import androidx.annotation.RequiresApi
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.google.android.libraries.places.api.Places
-import com.mario.skyeye.BuildConfig
 import com.mario.skyeye.data.local.AppDataBase
 import com.mario.skyeye.data.local.LocalDataSourceImpl
 import com.mario.skyeye.data.remote.RemoteDataSourceImpl
 import com.mario.skyeye.data.remote.RetrofitHelper
 import com.mario.skyeye.data.repo.RepoImpl
+import com.mario.skyeye.data.sharedprefrence.AppPreference
 import com.mario.skyeye.navigation.ScreensRoutes.FavoritesScreen
 import com.mario.skyeye.navigation.ScreensRoutes.HomeScreen
 import com.mario.skyeye.navigation.ScreensRoutes.MapScreen
@@ -40,14 +41,17 @@ fun SetupNavHost(navHostController: NavHostController, showMap: MutableState<Boo
         composable<HomeScreen> {
             showMap.value = false
             HomeScreenUI(viewModel(
-                factory = HomeFactory(RepoImpl.getInstance(RemoteDataSourceImpl(RetrofitHelper.service),LocalDataSourceImpl(AppDataBase.getInstance(navHostController.context).weatherDao())))
+                factory = HomeFactory(RepoImpl.getInstance(RemoteDataSourceImpl(RetrofitHelper.service),
+                    LocalDataSourceImpl(AppDataBase.getInstance(navHostController.context).weatherDao()),
+                    AppPreference(LocalContext.current)))
             ))
         }
         composable<FavoritesScreen> {
             showMap.value = true
             FavoritesScreenUI(viewModel(
                 factory = FavoritesFactory(RepoImpl.getInstance(RemoteDataSourceImpl(RetrofitHelper.service),
-                    LocalDataSourceImpl(AppDataBase.getInstance(navHostController.context).weatherDao())))
+                    LocalDataSourceImpl(AppDataBase.getInstance(navHostController.context).weatherDao()),
+                    AppPreference(LocalContext.current)))
             ), snackbarHostState )
         }
         composable<WeatherAlertsScreen> {
@@ -56,15 +60,18 @@ fun SetupNavHost(navHostController: NavHostController, showMap: MutableState<Boo
         }
         composable<SettingsScreen> {
             showMap.value = false
-            SettingsScreen(SettingsViewModel())
+            SettingsScreen(SettingsViewModel(
+                RepoImpl.getInstance(RemoteDataSourceImpl(RetrofitHelper.service),LocalDataSourceImpl(AppDataBase.getInstance(LocalContext.current).weatherDao()), AppPreference(LocalContext.current))
+            ))
         }
         composable<MapScreen> {
             showMap.value = false
-            Places.initializeWithNewPlacesApiEnabled(navHostController.context, BuildConfig.MAPS_API_KEY)
             MapUi(viewModel(
-                factory = MapFactory(RepoImpl.getInstance(RemoteDataSourceImpl(RetrofitHelper.service),LocalDataSourceImpl(AppDataBase.getInstance(navHostController.context).weatherDao())),
+                factory = MapFactory(RepoImpl.getInstance(RemoteDataSourceImpl(RetrofitHelper.service),
+                    LocalDataSourceImpl(AppDataBase.getInstance(navHostController.context).weatherDao()),
+                    AppPreference(LocalContext.current)),
                     Places.createClient(navHostController.context))
-            ),context = navHostController.context)
+            ),context = LocalContext.current)
 
         }
     }

@@ -59,7 +59,7 @@ fun getHourFormTime(timestamp: Long): String {
 
 @RequiresApi(Build.VERSION_CODES.O)
 fun getDayName(dateString: String): String {
-    val formatter = DateTimeFormatter.ofPattern("yyyyMMdd", Locale.ENGLISH)
+    val formatter = DateTimeFormatter.ofPattern("yyyyMMdd", Locale.getDefault())
     val localDate = LocalDate.parse(dateString, formatter)
-    return localDate.dayOfWeek.getDisplayName(java.time.format.TextStyle.FULL, Locale.ENGLISH)
+    return localDate.dayOfWeek.getDisplayName(java.time.format.TextStyle.FULL, Locale.getDefault())
 }

@@ -7,8 +7,8 @@ import com.mario.skyeye.data.models.CurrentWeatherResponse
 import com.mario.skyeye.data.models.Response
 import com.mario.skyeye.data.models.WeatherForecast
 import com.mario.skyeye.data.repo.Repo
-import com.mario.skyeye.data.sharedprefrence.AppPreferences
-import com.mario.skyeye.utils.getUnitType
+import com.mario.skyeye.enums.TempUnit
+import com.mario.skyeye.utils.Constants
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -17,7 +17,7 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
 
 class HomeViewModel(private val repo: Repo): ViewModel(){
-    val tempUnit = AppPreferences.getPreference("temp_unit", "°C")
+    val tempUnit = repo.getPreference(Constants.TEMP_UNIT, TempUnit.CELSIUS.getSymbol())
     private val _currentWeatherState: MutableStateFlow<Response<CurrentWeatherResponse?>> = MutableStateFlow(Response.Loading)
     val currentWeatherState: StateFlow<Response<CurrentWeatherResponse?>> = _currentWeatherState.asStateFlow()
     private val _weatherForecastState: MutableStateFlow<Response<WeatherForecast?>> = MutableStateFlow(Response.Loading)
@@ -26,7 +26,7 @@ class HomeViewModel(private val repo: Repo): ViewModel(){
     fun getCurrentWeather(lat: Double, lon: Double) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                val response = repo.getCurrentWeather(true, lat, lon,getUnitType(tempUnit))
+                val response = repo.getCurrentWeather(true, lat, lon,(tempUnit))
                 response?.catch { e ->
                     _currentWeatherState.value = Response.Failure(e)
                 }?.collect { weatherResponse ->
@@ -45,7 +45,7 @@ class HomeViewModel(private val repo: Repo): ViewModel(){
     fun getWeatherForecast(lat: Double, lon: Double) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                val response = repo.getWeatherForecast(true, lat, lon, getUnitType(tempUnit))
+                val response = repo.getWeatherForecast(true, lat, lon, (tempUnit))
                 response?.catch { e ->
                     _weatherForecastState.value = Response.Failure(e)
                 }?.collect { weatherForecast ->

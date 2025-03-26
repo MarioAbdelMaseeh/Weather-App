@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">عين السماء</string>
+    <string name="home">الرئيسية</string>
+    <string name="favorites">المفضلة</string>
+    <string name="alerts">التنبيهات</string>
+    <string name="now">الآن</string>
+    <string name="a_minute_ago">قبل دقيقة</string>
+    <string name="minutes_ago">قبل %1$s دقائق</string>
+    <string name="hours_ago">قبل %1$s ساعات</string>
+    <string name="an_hour_ago">قبل ساعة</string>
+    <string name="days_ago">قبل %1$s أيام</string>
+    <string name="yesterday">أمس</string>
+    <string name="settings">الإعدادات</string>
+    <string name="temperature">درجة الحرارة</string>
+    <string name="celsius">°م</string>
+    <string name="fahrenheit">°ف</string>
+    <string name="kelvin">°ك</string>
+
+    <string name="wind_speed">سرعة الرياح</string>
+    <string name="meters_per_second">م/ث</string>
+    <string name="kilometers_per_hour">كم/س</string>
+    <string name="miles_per_hour">ميل/س</string>
+
+    <string name="language">اللغة</string>
+    <string name="arabic">العربية</string>
+    <string name="english">الإنجليزية</string>
+
+    <string name="location">الموقع</string>
+    <string name="gps">نظام تحديد المواقع</string>
+    <string name="map">الخريطة</string>
+
+    <string name="theme">السمة</string>
+    <string name="system">النظام</string>
+    <string name="light">فاتح</string>
+    <string name="dark">داكن</string>
+
+    <string name="back">رجوع</string>
+    <string name="saved_locations">المواقع المحفوظة</string>
+    <string name="weather_icon">أيقونة الطقس</string>
+    <string name="current_weather">الطقس الحالي: %1$s</string>
+    <string name="location_deleted">تم حذف الموقع</string>
+    <string name="undo">تراجع</string>
+    <string name="delete_icon">حذف الأيقونة</string>
+    <string name="no_saved_locations">لا توجد مواقع محفوظة</string>
+    <string name="location_icon">أيقونة الموقع</string>
+    <string name="hourly_forecast">توقعات كل ساعة</string>
+    <string name="weekly_forecast">التوقعات الأسبوعية</string>
+    <string name="humidity">الرطوبة</string>
+    <string name="cloudiness">الغيم</string>
+    <string name="visibility">الرؤية</string>
+    <string name="sunrise">شروق الشمس</string>
+    <string name="sunset">غروب الشمس</string>
+    <string name="feels_like">يشعر بها %1$s%2$s</string>
+    <string name="last_updated">آخر تحديث: %1$s</string>
+</resources>
