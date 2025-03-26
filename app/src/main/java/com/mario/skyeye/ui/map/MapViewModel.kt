@@ -16,6 +16,7 @@ import com.mario.skyeye.locationState
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
@@ -83,13 +84,20 @@ class MapViewModel (private val repo: Repo, private val placesClient: PlacesClie
         _predictions.value = emptyList()
     }
     fun getCoordinates(query: String){
+        val flag = true
         viewModelScope.launch {
-            repo.getCoordinates(query)?.collect{
-                Log.i("TAG", "getCoordinates: ${it?.get(0)?.lat} ${it?.get(0)?.lon} ")
+            repo.getCoordinates(query)?.catch { e ->
+                Log.i("TAG", "getCoordinates: ${e.message}")
+            }
+                ?.collect{
                 if (it != null) {
-                    Log.i("TAG", "getCoordinates: ${it[0].lat} ${it[0].lon} ")
-                    selectLocation(LatLng(it[0].lat, it[0].lon))
-                    cameraPosition.value = CameraPosition.fromLatLngZoom(LatLng(it[0].lat, it[0].lon), 10f)
+                    if (it.isEmpty() && flag) {
+                        flag == false
+                        getCoordinates(query.substringBefore(","))
+                    }else if (it.isNotEmpty()) {
+                        selectLocation(LatLng(it[0].lat, it[0].lon))
+                        cameraPosition.value = CameraPosition.fromLatLngZoom(LatLng(it[0].lat, it[0].lon), 10f)
+                    }
                 }
             }
             clearPredictions()

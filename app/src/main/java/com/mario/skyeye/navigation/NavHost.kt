@@ -25,6 +25,7 @@ import com.mario.skyeye.ui.home.HomeFactory
 import com.mario.skyeye.ui.home.HomeScreenUI
 import com.mario.skyeye.ui.map.MapFactory
 import com.mario.skyeye.ui.map.MapUi
+import com.mario.skyeye.ui.settings.SettingsScreen
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -49,7 +50,7 @@ fun SetupNavHost(navHostController: NavHostController){
             //WeatherAlertsScreenUI()
         }
         composable<SettingsScreen> {
-
+            SettingsScreen()
         }
         composable<MapScreen> {
             Places.initializeWithNewPlacesApiEnabled(navHostController.context, BuildConfig.MAPS_API_KEY)

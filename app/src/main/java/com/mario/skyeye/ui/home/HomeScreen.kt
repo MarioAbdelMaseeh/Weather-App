@@ -26,6 +26,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -39,6 +40,7 @@ import com.mario.skyeye.data.models.Response
 import com.mario.skyeye.data.models.WeatherForecast
 import com.mario.skyeye.locationState
 import com.mario.skyeye.ui.WeatherIconMapper
+import com.mario.skyeye.utils.getRelativeTime
 import java.text.DateFormat
 import java.text.SimpleDateFormat
 import java.time.Instant
@@ -75,7 +77,7 @@ fun HomeScreenUI(viewModel: HomeViewModel) {
                 modifier = Modifier.fillMaxSize(),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
-            ) {
+            ){
                 item {
                     when (currentWeatherResponse.value) {
                         is Response.Loading -> {
@@ -95,7 +97,7 @@ fun HomeScreenUI(viewModel: HomeViewModel) {
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.Center
-                            ) {
+                            ){
                                 Image(
                                     painter = painterResource(id = R.drawable.marker),
                                     contentDescription = "Location Icon",
@@ -140,7 +142,6 @@ fun HomeScreenUI(viewModel: HomeViewModel) {
                                 }
                             }
                         }
-
                         is Response.Success -> {
                             val weatherForecastResponse =
                                 (weatherForecastResponse.value as Response.Success<WeatherForecast>).data
@@ -337,8 +338,6 @@ fun ForecastDay(date: Int, forecastList: List<WeatherForecast.Item0>) {
         Spacer(modifier = Modifier.size(8.dp))
     }
 }
-
-
 fun WeatherForecast.forecastDaysHelper(): Map<Int, List<WeatherForecast.Item0>> {
     val forecastMap = mutableMapOf<Int, MutableList<WeatherForecast.Item0>>()
     val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
@@ -510,6 +509,7 @@ private fun CurrentWeatherBox(response: CurrentWeatherResponse?) {
                 Text(
                     text = DateFormat.getDateInstance(DateFormat.FULL).format(myDate)
                 )
+                Text("Last updated: ${getRelativeTime(response?.dt ?: 0 , LocalContext.current)}")
             }
         }
     }

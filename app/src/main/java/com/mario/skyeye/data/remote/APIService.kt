@@ -1,5 +1,6 @@
 package com.mario.skyeye.data.remote
 
+import com.mario.skyeye.BuildConfig
 import com.mario.skyeye.data.models.CurrentWeatherResponse
 import com.mario.skyeye.data.models.GeoCoderResponse
 import com.mario.skyeye.data.models.WeatherForecast
@@ -12,7 +13,7 @@ interface APIService {
     suspend fun getCurrentWeather(
         @Query("lat") lat: Double,
         @Query("lon") lon: Double,
-        @Query("appid") appId: String = "844a4cd04ffae12ec335ae0bc0ea63ec",
+        @Query("appid") appId: String = BuildConfig.WEATHER_API_KEY,
         @Query("units") units: String = "metric",
         @Query("lang") lang: String = "en"
     ): CurrentWeatherResponse?
@@ -21,7 +22,7 @@ interface APIService {
     suspend fun getWeatherForecast(
         @Query("lat") lat: Double,
         @Query("lon") lon: Double,
-        @Query("appid") appId: String = "844a4cd04ffae12ec335ae0bc0ea63ec",
+        @Query("appid") appId: String = BuildConfig.WEATHER_API_KEY,
         @Query("units") units: String = "metric",
         @Query("lang") lang: String = "en"
     ): WeatherForecast?
@@ -30,13 +31,13 @@ interface APIService {
     suspend fun getCityName(
         @Query("lat") lat: Double,
         @Query("lon") lon: Double,
-        @Query("appid") appId: String = "844a4cd04ffae12ec335ae0bc0ea63ec"
+        @Query("appid") appId: String = BuildConfig.WEATHER_API_KEY
         ): GeoCoderResponse
 
     @GET("geo/1.0/direct")
     suspend fun getCoordinates(
         @Query("q") q: String,
-        @Query("appid") appId: String = "844a4cd04ffae12ec335ae0bc0ea63ec"
+        @Query("appid") appId: String = BuildConfig.WEATHER_API_KEY
     ): GeoCoderResponse
 }
 

@@ -1,6 +1,7 @@
 package com.mario.skyeye.ui.map
 
 import android.content.Context
+import android.util.Log
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -57,7 +58,7 @@ fun MapUi(viewModel: MapViewModel, context: Context) {
         )
     )
     LaunchedEffect(selectedLocation) {
-        selectedLocation?.let {
+        selectedLocation.let {
             markerState.position = it
             cameraPositionState.animate(CameraUpdateFactory.newLatLngZoom(it, 10f))
         }
@@ -76,7 +77,7 @@ fun MapUi(viewModel: MapViewModel, context: Context) {
 
         Column(modifier = Modifier
             .fillMaxWidth()
-            .padding(16.dp,0.dp)) {
+            .padding(16.dp, 0.dp)) {
 
                 PlacesAutocompleteTextField(
                     modifier = Modifier
@@ -86,6 +87,7 @@ fun MapUi(viewModel: MapViewModel, context: Context) {
                     predictions = predictions.map { it.toPlaceDetails() },
                     onQueryChanged = { viewModel.updateSearchQuery(it) },
                     onSelected = { place: AutocompletePlace ->
+                        Log.i("TAG", "MapUi: ${place.primaryText}, ${place.secondaryText}")
                         viewModel.getCoordinates("${place.primaryText}, ${place.secondaryText ?: ""}")
                         viewModel.updateCityName("${place.primaryText}, ${place.secondaryText ?: ""}")
                     },
