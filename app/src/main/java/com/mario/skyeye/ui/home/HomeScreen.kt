@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -22,7 +23,6 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -35,7 +35,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.mario.skyeye.R
 import com.mario.skyeye.data.models.CurrentWeatherResponse
@@ -45,15 +44,12 @@ import com.mario.skyeye.enums.TempUnit
 import com.mario.skyeye.enums.TempUnit.Companion.fromUnitType
 import com.mario.skyeye.locationState
 import com.mario.skyeye.ui.WeatherIconMapper
+import com.mario.skyeye.utils.LanguageManager
 import com.mario.skyeye.utils.getDayName
 import com.mario.skyeye.utils.getHourFormTime
 import com.mario.skyeye.utils.getRelativeTime
 import java.text.DateFormat
 import java.text.SimpleDateFormat
-import java.time.Instant
-import java.time.LocalDate
-import java.time.ZoneId
-import java.time.format.DateTimeFormatter
 import java.util.Date
 import java.util.Locale
 
@@ -63,9 +59,14 @@ import java.util.Locale
 fun HomeScreenUI(viewModel: HomeViewModel) {
     val currentWeatherResponse = viewModel.currentWeatherState.collectAsState()
     val weatherForecastResponse = viewModel.weatherForecastState.collectAsState()
-    LaunchedEffect(Unit ) {
-        viewModel.getCurrentWeather(locationState.value.latitude, locationState.value.longitude)
-        viewModel.getWeatherForecast(locationState.value.latitude, locationState.value.longitude)
+    LaunchedEffect(locationState.value) {
+        if (locationState.value.latitude != 0.0 && locationState.value.longitude != 0.0) {
+            viewModel.getCurrentWeather(locationState.value.latitude, locationState.value.longitude)
+            viewModel.getWeatherForecast(
+                locationState.value.latitude,
+                locationState.value.longitude
+            )
+        }
     }
     Box(
         modifier = Modifier
@@ -171,6 +172,7 @@ fun HomeScreenUI(viewModel: HomeViewModel) {
                                             Box(
                                                 modifier = Modifier
                                                     .fillMaxWidth()
+                                                    .defaultMinSize(100.dp)
                                                     .padding(8.dp, 16.dp)
                                                     .background(
                                                         brush = Brush.horizontalGradient(
@@ -181,7 +183,8 @@ fun HomeScreenUI(viewModel: HomeViewModel) {
                                                         ),
                                                         shape = RoundedCornerShape(16.dp)
                                                     )
-                                                    .padding(8.dp)
+                                                    .padding(8.dp),
+                                                contentAlignment = Alignment.Center
                                             ) {
                                                 HourlyForecastItem(forecast, fromUnitType(viewModel.tempUnit)?.getSymbol() ?: TempUnit.CELSIUS.getSymbol())
                                             }
@@ -191,6 +194,7 @@ fun HomeScreenUI(viewModel: HomeViewModel) {
                                             Box(
                                                 modifier = Modifier
                                                     .fillMaxWidth()
+                                                    .defaultMinSize(100.dp)
                                                     .padding(8.dp, 16.dp)
                                                     .background(
                                                         brush = Brush.horizontalGradient(
@@ -201,7 +205,8 @@ fun HomeScreenUI(viewModel: HomeViewModel) {
                                                         ),
                                                         shape = RoundedCornerShape(16.dp)
                                                     )
-                                                    .padding(8.dp)
+                                                    .padding(8.dp),
+                                                contentAlignment = Alignment.Center
                                             ) {
                                                 HourlyForecastItem(forecast, fromUnitType(viewModel.tempUnit)?.getSymbol() ?: TempUnit.CELSIUS.getSymbol())
                                             }
@@ -255,10 +260,11 @@ fun HomeScreenUI(viewModel: HomeViewModel) {
 fun HourlyForecastItem(x0: WeatherForecast.Item0, unit: String) {
 
     Column(
+        modifier = Modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        Text(text = getHourFormTime(x0.dt.toLong()),
+        Text(text = LanguageManager.formatNumberBasedOnLanguage(getHourFormTime(x0.dt.toLong())),
             color = colorResource(id = R.color.black),
             fontSize = 16.sp,
         )
@@ -271,7 +277,7 @@ fun HourlyForecastItem(x0: WeatherForecast.Item0, unit: String) {
             contentDescription = stringResource(R.string.weather_icon),
             modifier = Modifier.size(30.dp)
         )
-        Text(text = "${x0.main.temp.toInt()}$unit",
+        Text(text = "${LanguageManager.formatNumberBasedOnLanguage(x0.main.temp.toInt().toString())}$unit",
             color = colorResource(id = R.color.black),
             fontSize = 16.sp,
             fontWeight = FontWeight.Bold)
@@ -316,7 +322,7 @@ fun ForecastDay(date: Int, forecastList: List<WeatherForecast.Item0>, unit: Stri
             modifier = Modifier.size(15.dp)
         )
         Text(
-            text = "${forecastList[indexOfMaxTemp].main.humidity} %"
+            text = "${LanguageManager.formatNumberBasedOnLanguage(forecastList[indexOfMaxTemp].main.humidity.toString())} %"
         )
         Spacer(modifier = Modifier.size(32.dp))
         Image(
@@ -339,7 +345,7 @@ fun ForecastDay(date: Int, forecastList: List<WeatherForecast.Item0>, unit: Stri
         )
         Spacer(modifier = Modifier.size(8.dp))
         Text(
-            text = "$maxTemp/$minTemp$unit",
+            text = "${LanguageManager.formatNumberBasedOnLanguage(maxTemp.toString())}/${LanguageManager.formatNumberBasedOnLanguage(minTemp.toString())}$unit",
             color = colorResource(id = R.color.black),
             fontSize = 16.sp,
             modifier = Modifier.width(70.dp),
@@ -389,9 +395,14 @@ fun WeatherDetailsBox(x0: CurrentWeatherResponse?) {
                 horizontalAlignment = Alignment.Start
             ) {
                 SmallBox(R.drawable.humidity,
-                    stringResource(R.string.humidity), x0?.main?.humidity.toString(), "%")
+                    stringResource(R.string.humidity),
+                    LanguageManager.formatNumberBasedOnLanguage(x0?.main?.humidity.toString()),
+                    "%")
                 Spacer(modifier = Modifier.size(8.dp))
-                SmallBox(R.drawable.wind, stringResource(R.string.wind_speed), x0?.wind?.speed.toString(), "Km/h")
+                SmallBox(R.drawable.wind,
+                    stringResource(R.string.wind_speed),
+                    LanguageManager.formatNumberBasedOnLanguage(x0?.wind?.speed.toString()),
+                    "Km/h")
             }
             Column(
                 verticalArrangement = Arrangement.Center,
@@ -400,21 +411,25 @@ fun WeatherDetailsBox(x0: CurrentWeatherResponse?) {
                 SmallBox(
                     R.drawable.clouds,
                     stringResource(R.string.cloudiness),
-                    x0?.clouds?.all.toString(),
+                    LanguageManager.formatNumberBasedOnLanguage(x0?.clouds?.all.toString()),
                     "%"
                 )
                 Spacer(modifier = Modifier.size(8.dp))
                 SmallBox(R.drawable.eye,
-                    stringResource(R.string.visibility), x0?.visibility.toString(), "m")
+                    stringResource(R.string.visibility),
+                    LanguageManager.formatNumberBasedOnLanguage(x0?.visibility.toString()), "m")
             }
             Column {
 
                 val riseTime = getHourFormTime(x0?.sys?.sunrise?.toLong() ?: 0)
                 val setTime = getHourFormTime(x0?.sys?.sunset?.toLong() ?: 0)
                 SmallBox(R.drawable.sunrise_alt,
-                    stringResource(R.string.sunrise), riseTime.toString(), "")
+                    stringResource(R.string.sunrise),
+                    LanguageManager.formatNumberBasedOnLanguage(riseTime.toString()), "")
                 Spacer(modifier = Modifier.size(8.dp))
-                SmallBox(R.drawable.sunset, stringResource(R.string.sunset), setTime.toString(), "")
+                SmallBox(R.drawable.sunset,
+                    stringResource(R.string.sunset),
+                    LanguageManager.formatNumberBasedOnLanguage(setTime.toString()), "")
             }
         }
     }
@@ -476,9 +491,7 @@ private fun CurrentWeatherBox(response: CurrentWeatherResponse?, unit: String) {
                 Image(
                     painter = painterResource(
                         id = WeatherIconMapper.getWeatherIcon(
-                            response?.weather?.get(
-                                0
-                            )?.icon ?: "01d"
+                            response?.weather?.get(0)?.icon ?: "01d"
                         )
                     ),
                     contentDescription = "Weather Icon",
@@ -501,7 +514,7 @@ private fun CurrentWeatherBox(response: CurrentWeatherResponse?, unit: String) {
                     modifier = Modifier.size(8.dp)
                 )
                 Text(
-                    text = "${response?.main?.temp?.toInt() ?: "No Data"}${unit}",
+                    text = "${LanguageManager.formatNumberBasedOnLanguage((response?.main?.temp?.toInt() ?: "No Data").toString())}${unit}",
                     color = colorResource(id = R.color.black),
                     fontSize = 40.sp,
                     fontWeight = FontWeight.Bold,
@@ -511,7 +524,7 @@ private fun CurrentWeatherBox(response: CurrentWeatherResponse?, unit: String) {
                 Text(
                     text = stringResource(
                         R.string.feels_like,
-                        response?.main?.feelsLike?.toInt() ?: "No Data",
+                        LanguageManager.formatNumberBasedOnLanguage((response?.main?.feelsLike?.toInt() ?: "No Data").toString()),
                         unit
                     ),
                     color = colorResource(id = R.color.black),
@@ -524,6 +537,7 @@ private fun CurrentWeatherBox(response: CurrentWeatherResponse?, unit: String) {
                 Text(
                     text = DateFormat.getDateInstance(DateFormat.FULL).format(myDate)
                 )
+                Spacer(modifier = Modifier.size(8.dp))
                 Text(
                     stringResource(
                         R.string.last_updated,
