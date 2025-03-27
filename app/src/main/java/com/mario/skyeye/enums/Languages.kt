@@ -14,7 +14,7 @@ enum class Languages(val displayName: String, val code: String) {
     PORTUGUESE("Português", "pt");
     companion object {
         fun fromCode(code: String): Languages? = Languages.entries.find { it.code == code }
-        fun fromDisplayName(displayName: String): Languages? = Languages.entries.find { it.displayName == displayName }
+        fun fromLanguageDisplayName(displayName: String): Languages? = Languages.entries.find { it.displayName == displayName }
     }
 }
 

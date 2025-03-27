@@ -4,7 +4,6 @@ import android.content.Intent
 import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.location.Geocoder
-import android.location.Location
 import android.location.LocationManager
 import android.os.Build
 import android.os.Bundle
@@ -44,6 +43,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat
+import androidx.core.content.edit
 import androidx.navigation.compose.rememberNavController
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationCallback
@@ -52,14 +52,14 @@ import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
 import com.mario.skyeye.enums.Languages
+import com.mario.skyeye.enums.MapHelper
 import com.mario.skyeye.navigation.BottomNavigationItem
 import com.mario.skyeye.navigation.ScreensRoutes
 import com.mario.skyeye.navigation.SetupNavHost
 import com.mario.skyeye.utils.Constants
+import com.mario.skyeye.utils.Constants.REQUEST_CODE_LOCATION
 import java.util.Locale
 
-const val REQUEST_CODE_LOCATION = 5005
-lateinit var locationState: MutableState<Location>
 
 class MainActivity : ComponentActivity() {
     private lateinit var fusedLocationClient: FusedLocationProviderClient
@@ -68,6 +68,7 @@ class MainActivity : ComponentActivity() {
     lateinit var message : MutableState<String>
     lateinit var snackbarHostState: SnackbarHostState
     lateinit var showNavBar : MutableState<Boolean>
+    lateinit var onFabClick: MutableState<() -> Unit>
     private lateinit var sharedPreferences: SharedPreferences
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -79,10 +80,9 @@ class MainActivity : ComponentActivity() {
             showMap = remember { mutableStateOf(false) }
             showNavBar = remember { mutableStateOf(false) }
             message = remember { mutableStateOf("") }
-            locationState = remember { mutableStateOf(Location(LocationManager.GPS_PROVIDER))}
+            onFabClick = remember { mutableStateOf({}) }
             geocoder = Geocoder(this)
             MainUi()
-            Log.i("TAG", "onCreate:${locationState.value.latitude} ${locationState.value.longitude}")
         }
     }
     @RequiresApi(Build.VERSION_CODES.O)
@@ -170,7 +170,7 @@ class MainActivity : ComponentActivity() {
                 if (showMap.value){
                     FloatingActionButton(
                         onClick = {
-                            navController.navigate(ScreensRoutes.MapScreen)
+                            onFabClick.value()
                         },
                         shape = androidx.compose.foundation.shape.CircleShape,
                         containerColor = Color(0xFF007AFF),
@@ -185,20 +185,27 @@ class MainActivity : ComponentActivity() {
         ) {
             innerPadding ->
             Box(modifier = Modifier.padding(innerPadding)) {
-                SetupNavHost(navController, showMap, snackbarHostState, showNavBar)
+                SetupNavHost(navController, showMap, snackbarHostState, showNavBar, onFabClick)
             }
         }
     }
     override fun onStart() {
         super.onStart()
-        if(checkPermission()){
-            if(isLocationEnabled()){
-                getLocation()
-            }else{
-                enableGps()
+        if (sharedPreferences.getString(
+                Constants.LOCATION,
+                MapHelper.GPS.mapType
+            ) == MapHelper.GPS.mapType
+        ) {
+            Log.i("TAG", "onStart: ")
+            if (checkPermission()) {
+                if (isLocationEnabled()) {
+                    getLocation()
+                } else {
+                    enableGps()
+                }
+            } else {
+                requestPermission()
             }
-        }else{
-            requestPermission()
         }
     }
 
@@ -249,7 +256,7 @@ class MainActivity : ComponentActivity() {
                 super.onLocationResult(p0)
                 val location = p0.lastLocation
                 if (location != null && location.latitude != 0.0 && location.longitude != 0.0){
-                    locationState.value = location
+                    sharedPreferences.edit{ putString(Constants.CURRENT_LOCATION, "${location.latitude},${location.longitude}") }
                     Log.i("TAG", "getLocation: ${location.latitude} ${location.longitude}")
                     fusedLocationClient.removeLocationUpdates(this)
                 }else{

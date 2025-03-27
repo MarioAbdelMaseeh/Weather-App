@@ -8,6 +8,8 @@ import com.google.android.libraries.places.api.Places
 class MyApp : Application() {
     override fun onCreate() {
         super.onCreate()
-        Places.initializeWithNewPlacesApiEnabled(this, BuildConfig.MAPS_API_KEY)
+        if (!Places.isInitialized()){
+            Places.initializeWithNewPlacesApiEnabled(this, BuildConfig.MAPS_API_KEY)
+        }
     }
 }

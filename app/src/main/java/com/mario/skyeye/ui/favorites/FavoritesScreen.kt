@@ -27,9 +27,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
-import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.SwipeToDismissBox
@@ -54,10 +52,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.google.android.gms.maps.model.LatLng
 import com.mario.skyeye.R
 import com.mario.skyeye.data.models.FavoriteLocation
 import com.mario.skyeye.data.models.Response
-import com.mario.skyeye.locationState
 import com.mario.skyeye.utils.WeatherIconMapper
 import com.mario.skyeye.utils.getRelativeTime
 import kotlinx.coroutines.delay
@@ -67,7 +65,7 @@ import kotlinx.coroutines.delay
 @Composable
 fun FavoritesScreenUI(
     viewModel: FavoritesViewModel,
-    snackbarHostState: SnackbarHostState
+    snackbarHostState: SnackbarHostState,
 ) {
     val favoriteLocations by viewModel.favoriteLocations.collectAsStateWithLifecycle()
     viewModel.fetchFavoriteLocations()
@@ -142,15 +140,15 @@ fun FavoritesScreenUI(
     }
 
 @Composable
-fun FavoriteLocationItem(location: FavoriteLocation) {
+fun FavoriteLocationItem(location: FavoriteLocation,locationState: MutableState<LatLng> = mutableStateOf(LatLng(0.0,0.0))) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .padding(8.dp)
             .clickable(
                 onClick = {
-                    locationState.value.latitude = location.latitude
-                    locationState.value.longitude = location.longitude
+//                    locationState.value.latitude = location.latitude
+//                    locationState.value.longitude = location.longitude
                 }
             ),
         elevation = CardDefaults.cardElevation(4.dp),

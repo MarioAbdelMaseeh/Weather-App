@@ -17,4 +17,5 @@ interface Repo {
     suspend fun insertLocation(favoriteLocation: FavoriteLocation): Long
     fun savePreference(key: String, value: String)
     fun getPreference(key: String, defaultValue: String): String
+    fun onChangeCurrentLocation(): Flow<String>
 }

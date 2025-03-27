@@ -78,4 +78,8 @@ class RepoImpl private constructor(
     override fun getPreference(key: String, defaultValue: String): String {
         return sharedPreferences.getPreference(key, defaultValue)
     }
+
+    override fun onChangeCurrentLocation(): Flow<String> {
+        return sharedPreferences.onChangeCurrentLocation()
+    }
 }

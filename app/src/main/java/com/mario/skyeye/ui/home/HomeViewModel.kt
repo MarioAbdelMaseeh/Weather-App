@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.google.android.gms.maps.model.LatLng
 import com.mario.skyeye.data.models.CurrentWeatherResponse
 import com.mario.skyeye.data.models.Response
 import com.mario.skyeye.data.models.WeatherForecast
@@ -18,13 +19,15 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
 
 class HomeViewModel(private val repo: Repo): ViewModel(){
+    private val _locationState: MutableStateFlow<LatLng> = MutableStateFlow(LatLng(0.0,0.0))
+    val locationState: StateFlow<LatLng> = _locationState.asStateFlow()
     private val _currentWeatherState: MutableStateFlow<Response<CurrentWeatherResponse?>> = MutableStateFlow(Response.Loading)
     val currentWeatherState: StateFlow<Response<CurrentWeatherResponse?>> = _currentWeatherState.asStateFlow()
     private val _weatherForecastState: MutableStateFlow<Response<WeatherForecast?>> = MutableStateFlow(Response.Loading)
     val weatherForecastState: StateFlow<Response<WeatherForecast?>> = _weatherForecastState.asStateFlow()
 
     fun getCurrentWeather(lat: Double, lon: Double) {
-        var tempUnit = repo.getPreference(Constants.TEMP_UNIT, TempUnit.METRIC.getTempSymbol())
+        val tempUnit = repo.getPreference(Constants.TEMP_UNIT, TempUnit.METRIC.getTempSymbol())
         Log.i("HomeViewModel", "getCurrentWeather: $lat, $lon, $tempUnit")
         viewModelScope.launch(Dispatchers.IO) {
             try {
@@ -45,7 +48,7 @@ class HomeViewModel(private val repo: Repo): ViewModel(){
         }
     }
     fun getWeatherForecast(lat: Double, lon: Double) {
-        var tempUnit = repo.getPreference(Constants.TEMP_UNIT, TempUnit.METRIC.getTempSymbol())
+        val tempUnit = repo.getPreference(Constants.TEMP_UNIT, TempUnit.METRIC.getTempSymbol())
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 val response = repo.getWeatherForecast(true, lat, lon, (tempUnit))
@@ -70,6 +73,19 @@ class HomeViewModel(private val repo: Repo): ViewModel(){
     }
     fun setUpdateHomeScreen(flag: String){
         repo.savePreference(Constants.UPDATE,flag)
+    }
+    fun locationChangeListener(){
+        viewModelScope.launch {
+            repo.onChangeCurrentLocation().collect {
+                val location = it.split(",")
+                _locationState.value = LatLng(location[0].toDouble(), location[1].toDouble())
+                Log.i("HomeViewModel", "getLocation: ${_locationState.value}")
+            }
+        }
+    }
+    fun getLocation(){
+        val location = repo.getPreference(Constants.CURRENT_LOCATION, "0.0,0.0").split(",")
+        _locationState.value = LatLng(location[0].toDouble(), location[1].toDouble())
     }
     val tempUnit: String
         get() = repo.getPreference(Constants.TEMP_UNIT, TempUnit.METRIC.getTempSymbol())

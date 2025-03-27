@@ -42,7 +42,6 @@ import com.mario.skyeye.data.models.Response
 import com.mario.skyeye.data.models.WeatherForecast
 import com.mario.skyeye.enums.TempUnit
 import com.mario.skyeye.enums.TempUnit.Companion.fromUnitType
-import com.mario.skyeye.locationState
 import com.mario.skyeye.utils.WeatherIconMapper
 import com.mario.skyeye.utils.LanguageManager
 import com.mario.skyeye.utils.getDayName
@@ -59,6 +58,9 @@ import java.util.Locale
 fun HomeScreenUI(viewModel: HomeViewModel) {
     val currentWeatherResponse = viewModel.currentWeatherState.collectAsState()
     val weatherForecastResponse = viewModel.weatherForecastState.collectAsState()
+    viewModel.locationChangeListener()
+    viewModel.getLocation()
+    val locationState = viewModel.locationState.collectAsState()
     LaunchedEffect(locationState.value) {
         if (locationState.value.latitude != 0.0 && locationState.value.longitude != 0.0) {
             viewModel.getCurrentWeather(locationState.value.latitude, locationState.value.longitude)
@@ -69,11 +71,13 @@ fun HomeScreenUI(viewModel: HomeViewModel) {
         }
     }
     if(viewModel.updateHomeScreen() == "true"){
-        viewModel.getCurrentWeather(locationState.value.latitude, locationState.value.longitude)
-        viewModel.getWeatherForecast(
-            locationState.value.latitude,
-            locationState.value.longitude
-        )
+        if (locationState.value.latitude != 0.0 && locationState.value.longitude != 0.0) {
+            viewModel.getCurrentWeather(locationState.value.latitude, locationState.value.longitude)
+            viewModel.getWeatherForecast(
+                locationState.value.latitude,
+                locationState.value.longitude
+            )
+        }
         viewModel.setUpdateHomeScreen("false")
     }
     Box(
@@ -356,7 +360,7 @@ fun ForecastDay(date: Int, forecastList: List<WeatherForecast.Item0>, unit: Stri
             text = "${LanguageManager.formatNumberBasedOnLanguage(maxTemp.toString())}/${LanguageManager.formatNumberBasedOnLanguage(minTemp.toString())}$unit",
             color = colorResource(id = R.color.black),
             fontSize = 16.sp,
-            modifier = Modifier.width(70.dp),
+            modifier = Modifier.width(80.dp),
             textAlign = TextAlign.End
         )
         Spacer(modifier = Modifier.size(8.dp))

@@ -12,7 +12,8 @@ import com.google.android.libraries.places.api.net.PlacesClient
 import com.google.android.libraries.places.api.net.kotlin.awaitFindAutocompletePredictions
 import com.mario.skyeye.data.models.FavoriteLocation
 import com.mario.skyeye.data.repo.Repo
-import com.mario.skyeye.locationState
+import com.mario.skyeye.utils.Constants
+import com.mario.skyeye.utils.PlacesClientManager
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -33,18 +34,19 @@ class MapViewModel (private val repo: Repo, private val placesClient: PlacesClie
     private val _predictions = MutableStateFlow<List<AutocompletePrediction>>(emptyList())
     val predictions = _predictions.asStateFlow()
 
-    private val _selectedLocation = MutableStateFlow(LatLng(locationState.value.latitude, locationState.value.longitude))
+    private val _selectedLocation = MutableStateFlow(LatLng(0.0,0.0))
     val selectedLocation = _selectedLocation.asStateFlow()
 
     private val _cityName = MutableStateFlow("")
     val cityName = _cityName.asStateFlow()
 
-    private val cameraPosition = MutableStateFlow(CameraPosition.fromLatLngZoom(LatLng(locationState.value.latitude, locationState.value.longitude), 10f))
+    private val cameraPosition = MutableStateFlow(CameraPosition.fromLatLngZoom(LatLng(_selectedLocation.value.latitude, _selectedLocation.value.longitude), 10f))
     val cameraPositionState = cameraPosition.asStateFlow()
 
     init {
         observeSearchQuery()
-        getCityName(LatLng(locationState.value.latitude, locationState.value.longitude))
+        getCurrentLocation()
+        getCityName(_selectedLocation.value)
     }
     fun updateSearchQuery(query: String){
         _searchQuery.value = query
@@ -105,7 +107,7 @@ class MapViewModel (private val repo: Repo, private val placesClient: PlacesClie
     fun getCityName(latLng: LatLng){
         viewModelScope.launch {
             repo.getCityName(latLng.latitude, latLng.longitude)?.collect{
-                if (it != null) {
+                if (it != null && it.isNotEmpty()) {
                     _cityName.value = it[0].name
                 }
             }
@@ -121,7 +123,26 @@ class MapViewModel (private val repo: Repo, private val placesClient: PlacesClie
             }
         }
     }
-
+    fun getCurrentLocation(){
+        repo.getPreference(Constants.CURRENT_LOCATION, "0.0,0.0").let {
+            val location = it.split(",")
+            _selectedLocation.value = LatLng(location[0].toDouble(), location[1].toDouble())
+        }
+    }
+    fun setDefaultLocation(latLng: LatLng){
+        viewModelScope.launch {
+            repo.savePreference(Constants.CURRENT_LOCATION, "${latLng.latitude},${latLng.longitude}")
+        }
+    }
+    fun updatePreference(key: String, value: String){
+        viewModelScope.launch {
+            repo.savePreference(key, value)
+        }
+    }
+    override fun onCleared() {
+        super.onCleared()
+        PlacesClientManager.shutdown()
+    }
 
 }
 class MapFactory(private val repo: Repo, private val placesClient: PlacesClient): ViewModelProvider.Factory{
