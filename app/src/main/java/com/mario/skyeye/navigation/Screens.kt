@@ -1,17 +1,16 @@
 package com.mario.skyeye.navigation
 
 import kotlinx.serialization.Serializable
-
-sealed class ScreensRoutes(){
+@Serializable
+sealed class ScreensRoutes(val route: String) {
     @Serializable
-    object HomeScreen: ScreensRoutes()
+    object HomeScreen : ScreensRoutes("home")
     @Serializable
-    object SettingsScreen: ScreensRoutes()
+    object SettingsScreen : ScreensRoutes("settings")
     @Serializable
-    object FavoritesScreen: ScreensRoutes()
+    object FavoritesScreen : ScreensRoutes("favorites")
     @Serializable
-    object WeatherAlertsScreen: ScreensRoutes()
+    object WeatherAlertsScreen : ScreensRoutes("weather_alerts")
     @Serializable
-    object MapScreen: ScreensRoutes()
-
+    object MapScreen : ScreensRoutes("map")
 }

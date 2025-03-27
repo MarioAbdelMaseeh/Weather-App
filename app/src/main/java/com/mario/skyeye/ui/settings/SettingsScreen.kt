@@ -1,5 +1,8 @@
 package com.mario.skyeye.ui.settings
 
+import android.app.Activity
+import android.content.Context
+import android.content.Intent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -25,12 +28,22 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.mario.skyeye.R
+import com.mario.skyeye.enums.Languages
+import com.mario.skyeye.enums.Languages.Companion.fromCode
+import com.mario.skyeye.enums.Languages.Companion.fromDisplayName
+import com.mario.skyeye.enums.TempUnit
+import com.mario.skyeye.enums.TempUnit.Companion.fromSymbol
+import com.mario.skyeye.enums.TempUnit.Companion.fromUnitType
+import com.mario.skyeye.enums.TempUnit.Companion.fromWindSymbol
+import com.mario.skyeye.enums.TempUnit.Companion.fromWindUnitType
+import com.mario.skyeye.utils.Constants
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -40,6 +53,7 @@ fun SettingsScreen(viewModel: SettingsViewModel) {
     val selectedLocation by viewModel.selectedLocation.collectAsStateWithLifecycle()
     val selectedTheme by viewModel.selectedTheme.collectAsStateWithLifecycle()
     val selectedTemp by viewModel.selectedTemp.collectAsStateWithLifecycle()
+    val context = LocalContext.current
 
     Column(
         modifier = Modifier
@@ -64,12 +78,15 @@ fun SettingsScreen(viewModel: SettingsViewModel) {
             SettingsCategory(title = stringResource(R.string.temperature)) {
                 ToggleButtonGroup(
                     options = listOf(
-                        stringResource(R.string.celsius),
-                        stringResource(R.string.fahrenheit),
-                        stringResource(R.string.kelvin)
+                        TempUnit.METRIC.getTempSymbol(),
+                        TempUnit.IMPERIAL.getTempSymbol(),
+                        TempUnit.STANDARD.getTempSymbol()
                     ),
-                    selectedOption = selectedTemp,
-                    onOptionSelected = { viewModel.updatePreference("temp_unit", it) }
+                    selectedOption = fromUnitType(selectedTemp)?.getTempSymbol() ?: TempUnit.METRIC.getTempSymbol(),
+                    onOptionSelected = {
+                        viewModel.updatePreference("temp_unit", fromSymbol(it)?.unitType ?: TempUnit.METRIC.unitType)
+                        viewModel.updatePreference("wind_unit", fromSymbol(it)?.unitType ?: TempUnit.METRIC.unitType)
+                    }
                 )
             }
 
@@ -77,12 +94,13 @@ fun SettingsScreen(viewModel: SettingsViewModel) {
             SettingsCategory(title = stringResource(R.string.wind_speed)) {
                 ToggleButtonGroup(
                     options = listOf(
-                        stringResource(R.string.meters_per_second),
-                        stringResource(R.string.kilometers_per_hour),
-                        stringResource(R.string.miles_per_hour)
+                        TempUnit.METRIC.getWindSymbol(),
+                        TempUnit.IMPERIAL.getWindSymbol(),
                     ),
-                    selectedOption = selectedWindSpeed,
-                    onOptionSelected = { viewModel.updatePreference("wind_unit", it) }
+                    selectedOption = fromWindUnitType(selectedWindSpeed)?.getWindSymbol() ?: TempUnit.METRIC.getWindSymbol(),
+                    onOptionSelected = {
+                       // viewModel.updatePreference(Constants.WIND_UNIT, fromWindSymbol(it)?.unitType?: TempUnit.METRIC.windEnSymbol)
+                    }
                 )
             }
 
@@ -90,11 +108,12 @@ fun SettingsScreen(viewModel: SettingsViewModel) {
             SettingsCategory(title = stringResource(R.string.language)) {
                 ToggleButtonGroup(
                     options = listOf(
-                        stringResource(R.string.arabic),
-                        stringResource(R.string.english)
+                        Languages.ENGLISH.displayName,
+                        Languages.ARABIC.displayName
                     ),
-                    selectedOption = selectedLanguage,
-                    onOptionSelected = { viewModel.updatePreference("language", it) }
+                    selectedOption = fromCode(selectedLanguage)?.displayName ?: Languages.ENGLISH.displayName,
+                    onOptionSelected = { viewModel.updatePreference("language", fromDisplayName(it)?.code ?: Languages.ENGLISH.code)
+                        restartActivity(context)}
                 )
             }
 
@@ -160,4 +179,10 @@ fun ToggleButtonGroup(options: List<String>, selectedOption: String, onOptionSel
             }
         }
     }
+}
+fun restartActivity(context: Context) {
+    val intent = (context as? Activity)?.intent
+    intent?.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK)
+    context.startActivity(intent)
+    (context as? Activity)?.finish()
 }

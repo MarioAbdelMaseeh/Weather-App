@@ -15,4 +15,6 @@ interface Repo {
     suspend fun getAllLocations(): Flow<List<FavoriteLocation?>?>
     suspend fun deleteLocation(favoriteLocation: FavoriteLocation): Int
     suspend fun insertLocation(favoriteLocation: FavoriteLocation): Long
+    fun savePreference(key: String, value: String)
+    fun getPreference(key: String, defaultValue: String): String
 }

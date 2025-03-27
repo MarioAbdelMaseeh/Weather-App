@@ -49,14 +49,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.mario.skyeye.R
 import com.mario.skyeye.data.models.FavoriteLocation
 import com.mario.skyeye.data.models.Response
 import com.mario.skyeye.locationState
-import com.mario.skyeye.ui.WeatherIconMapper
+import com.mario.skyeye.utils.WeatherIconMapper
 import com.mario.skyeye.utils.getRelativeTime
 import kotlinx.coroutines.delay
 
@@ -82,11 +84,11 @@ fun FavoritesScreenUI(
                 ){
                     Icon(
                         Icons.Default.LocationCity,
-                        contentDescription = "Location",
+                        contentDescription = stringResource(R.string.location),
                         modifier = Modifier.size(40.dp)
                     )
                     Text(
-                        text = "Saved Locations",
+                        text = stringResource(R.string.saved_locations),
                         modifier = Modifier.padding(16.dp, 8.dp),
                         fontSize = 32.sp,
                         fontWeight = FontWeight.Bold
@@ -114,7 +116,7 @@ fun FavoritesScreenUI(
                     is Response.Success -> {
                         val locations = (favoriteLocations as Response.Success).data
                         if (locations?.isEmpty() == true) {
-                            Text(text = "No saved locations", modifier = Modifier.padding(16.dp))
+                            Text(text = stringResource(R.string.no_saved_locations), modifier = Modifier.padding(16.dp))
                         }else{
                             val favoriteLocations = (favoriteLocations as Response.Success).data
                             LazyColumn(
@@ -157,7 +159,9 @@ fun FavoriteLocationItem(location: FavoriteLocation) {
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Image(painter = painterResource(id = WeatherIconMapper.getWeatherIcon(location.currentWeatherResponse.weather[0].icon)), contentDescription = "Weather Icon", modifier = Modifier.size(100.dp))
+            Image(painter = painterResource(id = WeatherIconMapper.getWeatherIcon(location.currentWeatherResponse.weather[0].icon)),
+                contentDescription = stringResource(R.string.weather_icon),
+                modifier = Modifier.size(100.dp))
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -167,7 +171,10 @@ fun FavoriteLocationItem(location: FavoriteLocation) {
             ) {
                 Text(text = location.cityName, fontSize = 20.sp, fontWeight = FontWeight.Bold)
                 Text(
-                    text = "Current Weather: ${location.currentWeatherResponse.weather[0].description}",
+                    text = stringResource(
+                        R.string.current_weather,
+                        location.currentWeatherResponse.weather[0].description
+                    ),
                     fontSize = 16.sp
                 )
                 Text(text = getRelativeTime(location.currentWeatherResponse.dt, LocalContext.current), fontSize = 16.sp)
@@ -184,6 +191,7 @@ fun <T> SwipeToDeleteContainer(
     snackbarHostState: SnackbarHostState,
     content: @Composable (T) -> Unit
 ) {
+    val context = LocalContext.current
     var isDeleted by remember { mutableStateOf(false) }
     var canSwipe by remember { mutableStateOf(true) }
     val swipeToDismissState = rememberSwipeToDismissBoxState(
@@ -200,8 +208,8 @@ fun <T> SwipeToDeleteContainer(
     LaunchedEffect(isDeleted) {
         if (isDeleted) {
             val result = snackbarHostState.showSnackbar(
-                message = "Location deleted",
-                actionLabel = "Undo",
+                message = context.getString(R.string.location_deleted),
+                actionLabel = context.getString(R.string.undo),
                 withDismissAction = true,
                 duration = SnackbarDuration.Short
             )
@@ -267,7 +275,7 @@ fun DeleteLocationBackground(
         ) {
             Icon(
                 imageVector = Icons.Default.Delete,
-                contentDescription = "Delete Icon",
+                contentDescription = stringResource(R.string.delete_icon),
                 tint = Color.White
             )
         }

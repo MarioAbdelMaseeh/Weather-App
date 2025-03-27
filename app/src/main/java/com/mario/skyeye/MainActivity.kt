@@ -1,6 +1,7 @@
 package com.mario.skyeye
 
 import android.content.Intent
+import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.location.Geocoder
 import android.location.Location
@@ -30,6 +31,7 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -49,9 +51,13 @@ import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
+import com.mario.skyeye.enums.Languages
 import com.mario.skyeye.navigation.BottomNavigationItem
 import com.mario.skyeye.navigation.ScreensRoutes
 import com.mario.skyeye.navigation.SetupNavHost
+import com.mario.skyeye.utils.Constants
+import java.util.Locale
+
 const val REQUEST_CODE_LOCATION = 5005
 lateinit var locationState: MutableState<Location>
 
@@ -61,12 +67,17 @@ class MainActivity : ComponentActivity() {
     lateinit var showMap : MutableState<Boolean>
     lateinit var message : MutableState<String>
     lateinit var snackbarHostState: SnackbarHostState
+    lateinit var showNavBar : MutableState<Boolean>
+    private lateinit var sharedPreferences: SharedPreferences
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        sharedPreferences = getSharedPreferences(Constants.PREFS_NAME, MODE_PRIVATE)
+        applyLanguage(sharedPreferences.getString(Constants.LANGUAGE, Languages.ENGLISH.code) ?: "en")
         setContent {
             snackbarHostState = remember { SnackbarHostState() }
             showMap = remember { mutableStateOf(false) }
+            showNavBar = remember { mutableStateOf(false) }
             message = remember { mutableStateOf("") }
             locationState = remember { mutableStateOf(Location(LocationManager.GPS_PROVIDER))}
             geocoder = Geocoder(this)
@@ -111,30 +122,47 @@ class MainActivity : ComponentActivity() {
 
         Scaffold(
             snackbarHost = { SnackbarHost(snackbarHostState) },
-            bottomBar = { BottomAppBar{
-                    items.forEachIndexed { index,item ->
-                        NavigationBarItem(
-                            selected = selectedItem == index,
-                            onClick = {
-                                selectedItem = index
-                                navController.popBackStack()
-                                navController.navigate(item.route)
-                            },
-                            icon = {
-                                Icon(
-                                    painter = if(selectedItem == index){
-                                        painterResource(id = item.selectedIcon)
-                                    }else{
-                                        painterResource(id = item.unselectedIcon)
-                                    },
-                                    contentDescription = item.title,
-                                    modifier = Modifier.size(20.dp)
-                                )
-                            },
-                            label = {
-                                Text(text = item.title)
-                            }
-                        )
+            bottomBar = {
+                if (showNavBar.value) {
+                    BottomAppBar {
+                        val currentRoute = navController.currentBackStackEntryFlow
+                            .collectAsState(initial = navController.currentBackStackEntry)
+                            .value?.destination?.route?.substringAfterLast(".")
+                        items.forEachIndexed { index, item ->
+                            val itemRoute = item.route::class.simpleName
+                            NavigationBarItem(
+                                selected = currentRoute == itemRoute,
+                                onClick = {
+                                    if (currentRoute != item.route::class.simpleName) {
+                                        selectedItem = index
+                                        navController.popBackStack(
+                                            item.route,
+                                            inclusive = false
+                                        ) // Clears duplicate screens
+                                        navController.navigate(item.route) {
+                                            launchSingleTop =
+                                                true // Ensures only one instance exists
+                                            restoreState =
+                                                true    // Restores state when navigating back
+                                        }
+                                    }
+                                },
+                                icon = {
+                                    Icon(
+                                        painter = if (currentRoute == itemRoute) {
+                                            painterResource(id = item.selectedIcon)
+                                        } else {
+                                            painterResource(id = item.unselectedIcon)
+                                        },
+                                        contentDescription = item.title,
+                                        modifier = Modifier.size(20.dp)
+                                    )
+                                },
+                                label = {
+                                    Text(text = item.title)
+                                }
+                            )
+                        }
                     }
                 }
             },
@@ -157,7 +185,7 @@ class MainActivity : ComponentActivity() {
         ) {
             innerPadding ->
             Box(modifier = Modifier.padding(innerPadding)) {
-                SetupNavHost(navController, showMap, snackbarHostState)
+                SetupNavHost(navController, showMap, snackbarHostState, showNavBar)
             }
         }
     }
@@ -232,5 +260,13 @@ class MainActivity : ComponentActivity() {
         if (checkPermission()){
             fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback , Looper.myLooper())
         }
+    }
+    private fun applyLanguage(languageCode: String) {
+        val locale = Locale(languageCode)
+        Locale.setDefault(locale)
+
+        val config = resources.configuration
+        config.setLocale(locale)
+        resources.updateConfiguration(config, resources.displayMetrics)
     }
 }

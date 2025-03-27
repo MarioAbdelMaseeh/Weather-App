@@ -4,9 +4,6 @@ import com.mario.skyeye.BuildConfig
 import com.mario.skyeye.data.models.CurrentWeatherResponse
 import com.mario.skyeye.data.models.GeoCoderResponse
 import com.mario.skyeye.data.models.WeatherForecast
-import com.mario.skyeye.data.sharedprefrence.PreferencesManager
-import com.mario.skyeye.utils.getUnitType
-import retrofit2.Response
 import retrofit2.http.GET
 import retrofit2.http.Query
 import java.util.Locale

@@ -5,20 +5,23 @@ import com.mario.skyeye.data.models.FavoriteLocation
 import com.mario.skyeye.data.models.GeoCoderResponse
 import com.mario.skyeye.data.models.WeatherForecast
 import com.mario.skyeye.data.remote.RemoteDataSource
+import com.mario.skyeye.data.sharedprefrence.AppPreference
 import kotlinx.coroutines.flow.Flow
 
 class RepoImpl private constructor(
     private val remoteDataSource: RemoteDataSource,
-    private val localDataSource: LocalDataSource
+    private val localDataSource: LocalDataSource,
+    private val sharedPreferences: AppPreference
 ) : Repo {
     companion object {
         private var instance: RepoImpl? = null
         fun getInstance(
             remoteDataSource: RemoteDataSource,
-            localDataSource: LocalDataSource
+            localDataSource: LocalDataSource,
+            sharedPreferences: AppPreference
         ): RepoImpl {
             if (instance == null) {
-                instance = RepoImpl(remoteDataSource, localDataSource)
+                instance = RepoImpl(remoteDataSource, localDataSource, sharedPreferences)
             }
             return instance!!
         }
@@ -66,5 +69,13 @@ class RepoImpl private constructor(
 
     override suspend fun insertLocation(favoriteLocation: FavoriteLocation): Long {
         return localDataSource.insertLocation(favoriteLocation)
+    }
+
+    override fun savePreference(key: String, value: String) {
+        sharedPreferences.savePreference(key, value)
+    }
+
+    override fun getPreference(key: String, defaultValue: String): String {
+        return sharedPreferences.getPreference(key, defaultValue)
     }
 }
