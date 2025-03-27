@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import com.mario.skyeye.data.repo.Repo
 import com.mario.skyeye.enums.Languages
 import com.mario.skyeye.enums.TempUnit
+import com.mario.skyeye.utils.Constants
 import com.mario.skyeye.utils.Constants.THEME
 import com.mario.skyeye.utils.Constants.LANGUAGE
 import com.mario.skyeye.utils.Constants.LOCATION
@@ -17,9 +18,9 @@ import kotlinx.coroutines.flow.asStateFlow
 class SettingsViewModel(
     private val repo: Repo
 ) : ViewModel(){
-    private val _selectedTemp = MutableStateFlow(repo.getPreference(TEMP_UNIT, TempUnit.CELSIUS.getSymbol()))
+    private val _selectedTemp = MutableStateFlow(repo.getPreference(TEMP_UNIT, TempUnit.METRIC.getTempSymbol()))
     val selectedTemp = _selectedTemp.asStateFlow()
-    private val _selectedWindSpeed= MutableStateFlow(repo.getPreference(WIND_UNIT, "km/h"))
+    private val _selectedWindSpeed= MutableStateFlow(repo.getPreference(WIND_UNIT, TempUnit.METRIC.getWindSymbol()))
     val selectedWindSpeed = _selectedWindSpeed.asStateFlow()
     private val _selectedLanguage= MutableStateFlow(repo.getPreference(LANGUAGE, Languages.ENGLISH.displayName))
     val selectedLanguage = _selectedLanguage.asStateFlow()
@@ -30,6 +31,7 @@ class SettingsViewModel(
 
     fun updatePreference(key: String, value: String) {
         repo.savePreference(key, value)
+        repo.savePreference(Constants.UPDATE, "true")
         when (key) {
             TEMP_UNIT -> _selectedTemp.value = value
             WIND_UNIT -> _selectedWindSpeed.value = value

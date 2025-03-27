@@ -34,7 +34,6 @@
     <string name="system">النظام</string>
     <string name="light">فاتح</string>
     <string name="dark">داكن</string>
-
     <string name="back">رجوع</string>
     <string name="saved_locations">المواقع المحفوظة</string>
     <string name="weather_icon">أيقونة الطقس</string>
@@ -53,4 +52,8 @@
     <string name="sunset">غروب الشمس</string>
     <string name="feels_like">يشعر بها %1$s%2$s</string>
     <string name="last_updated">آخر تحديث: %1$s</string>
+    <string name="add_to_favorites">إضافة إلى المفضلة</string>
+    <string name="city">المدينة: %1$s</string>
+    <string name="m">م</string>
+
 </resources>

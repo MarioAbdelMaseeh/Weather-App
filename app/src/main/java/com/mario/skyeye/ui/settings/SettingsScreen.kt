@@ -41,6 +41,9 @@ import com.mario.skyeye.enums.Languages.Companion.fromDisplayName
 import com.mario.skyeye.enums.TempUnit
 import com.mario.skyeye.enums.TempUnit.Companion.fromSymbol
 import com.mario.skyeye.enums.TempUnit.Companion.fromUnitType
+import com.mario.skyeye.enums.TempUnit.Companion.fromWindSymbol
+import com.mario.skyeye.enums.TempUnit.Companion.fromWindUnitType
+import com.mario.skyeye.utils.Constants
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -75,12 +78,15 @@ fun SettingsScreen(viewModel: SettingsViewModel) {
             SettingsCategory(title = stringResource(R.string.temperature)) {
                 ToggleButtonGroup(
                     options = listOf(
-                        TempUnit.CELSIUS.getSymbol(),
-                        TempUnit.FAHRENHEIT.getSymbol(),
-                        TempUnit.KELVIN.getSymbol()
+                        TempUnit.METRIC.getTempSymbol(),
+                        TempUnit.IMPERIAL.getTempSymbol(),
+                        TempUnit.STANDARD.getTempSymbol()
                     ),
-                    selectedOption = fromUnitType(selectedTemp)?.getSymbol() ?: TempUnit.CELSIUS.getSymbol(),
-                    onOptionSelected = { viewModel.updatePreference("temp_unit", fromSymbol(it)?.unitType ?: TempUnit.CELSIUS.unitType) }
+                    selectedOption = fromUnitType(selectedTemp)?.getTempSymbol() ?: TempUnit.METRIC.getTempSymbol(),
+                    onOptionSelected = {
+                        viewModel.updatePreference("temp_unit", fromSymbol(it)?.unitType ?: TempUnit.METRIC.unitType)
+                        viewModel.updatePreference("wind_unit", fromSymbol(it)?.unitType ?: TempUnit.METRIC.unitType)
+                    }
                 )
             }
 
@@ -88,12 +94,13 @@ fun SettingsScreen(viewModel: SettingsViewModel) {
             SettingsCategory(title = stringResource(R.string.wind_speed)) {
                 ToggleButtonGroup(
                     options = listOf(
-                        stringResource(R.string.meters_per_second),
-                        stringResource(R.string.kilometers_per_hour),
-                        stringResource(R.string.miles_per_hour)
+                        TempUnit.METRIC.getWindSymbol(),
+                        TempUnit.IMPERIAL.getWindSymbol(),
                     ),
-                    selectedOption = selectedWindSpeed,
-                    onOptionSelected = { viewModel.updatePreference("wind_unit", it) }
+                    selectedOption = fromWindUnitType(selectedWindSpeed)?.getWindSymbol() ?: TempUnit.METRIC.getWindSymbol(),
+                    onOptionSelected = {
+                       // viewModel.updatePreference(Constants.WIND_UNIT, fromWindSymbol(it)?.unitType?: TempUnit.METRIC.windEnSymbol)
+                    }
                 )
             }
 

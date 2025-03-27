@@ -33,13 +33,19 @@ import com.mario.skyeye.ui.settings.SettingsViewModel
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun SetupNavHost(navHostController: NavHostController, showMap: MutableState<Boolean>,snackbarHostState: SnackbarHostState){
+fun SetupNavHost(
+    navHostController: NavHostController,
+    showMap: MutableState<Boolean>,
+    snackbarHostState: SnackbarHostState,
+    showNavBar: MutableState<Boolean>
+){
     NavHost(
         navController = navHostController,
         startDestination = HomeScreen
     ) {
         composable<HomeScreen> {
             showMap.value = false
+            showNavBar.value = true
             HomeScreenUI(viewModel(
                 factory = HomeFactory(RepoImpl.getInstance(RemoteDataSourceImpl(RetrofitHelper.service),
                     LocalDataSourceImpl(AppDataBase.getInstance(navHostController.context).weatherDao()),
@@ -48,6 +54,7 @@ fun SetupNavHost(navHostController: NavHostController, showMap: MutableState<Boo
         }
         composable<FavoritesScreen> {
             showMap.value = true
+            showNavBar.value = true
             FavoritesScreenUI(viewModel(
                 factory = FavoritesFactory(RepoImpl.getInstance(RemoteDataSourceImpl(RetrofitHelper.service),
                     LocalDataSourceImpl(AppDataBase.getInstance(navHostController.context).weatherDao()),
@@ -56,22 +63,25 @@ fun SetupNavHost(navHostController: NavHostController, showMap: MutableState<Boo
         }
         composable<WeatherAlertsScreen> {
             showMap.value = false
+            showNavBar.value = true
             //WeatherAlertsScreenUI()
         }
         composable<SettingsScreen> {
             showMap.value = false
+            showNavBar.value = true
             SettingsScreen(SettingsViewModel(
                 RepoImpl.getInstance(RemoteDataSourceImpl(RetrofitHelper.service),LocalDataSourceImpl(AppDataBase.getInstance(LocalContext.current).weatherDao()), AppPreference(LocalContext.current))
             ))
         }
         composable<MapScreen> {
             showMap.value = false
+            showNavBar.value = false
             MapUi(viewModel(
                 factory = MapFactory(RepoImpl.getInstance(RemoteDataSourceImpl(RetrofitHelper.service),
                     LocalDataSourceImpl(AppDataBase.getInstance(navHostController.context).weatherDao()),
                     AppPreference(LocalContext.current)),
                     Places.createClient(navHostController.context))
-            ),context = LocalContext.current)
+            ),navHostController)
 
         }
     }

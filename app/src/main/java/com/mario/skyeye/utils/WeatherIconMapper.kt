@@ -1,4 +1,4 @@
-package com.mario.skyeye.ui
+package com.mario.skyeye.utils
 
 import com.mario.skyeye.R
 

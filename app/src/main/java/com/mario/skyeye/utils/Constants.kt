@@ -7,4 +7,5 @@ object Constants {
     const val LANGUAGE = "language"
     const val LOCATION = "location"
     const val THEME = "theme"
+    const val UPDATE = "update"
 }

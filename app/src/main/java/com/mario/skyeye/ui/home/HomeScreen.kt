@@ -43,7 +43,7 @@ import com.mario.skyeye.data.models.WeatherForecast
 import com.mario.skyeye.enums.TempUnit
 import com.mario.skyeye.enums.TempUnit.Companion.fromUnitType
 import com.mario.skyeye.locationState
-import com.mario.skyeye.ui.WeatherIconMapper
+import com.mario.skyeye.utils.WeatherIconMapper
 import com.mario.skyeye.utils.LanguageManager
 import com.mario.skyeye.utils.getDayName
 import com.mario.skyeye.utils.getHourFormTime
@@ -67,6 +67,14 @@ fun HomeScreenUI(viewModel: HomeViewModel) {
                 locationState.value.longitude
             )
         }
+    }
+    if(viewModel.updateHomeScreen() == "true"){
+        viewModel.getCurrentWeather(locationState.value.latitude, locationState.value.longitude)
+        viewModel.getWeatherForecast(
+            locationState.value.latitude,
+            locationState.value.longitude
+        )
+        viewModel.setUpdateHomeScreen("false")
     }
     Box(
         modifier = Modifier
@@ -124,9 +132,9 @@ fun HomeScreenUI(viewModel: HomeViewModel) {
                                     fontWeight = FontWeight.Bold
                                 )
                             }
-                            CurrentWeatherBox(currentWeatherResponse, fromUnitType(viewModel.tempUnit)?.getSymbol() ?: TempUnit.CELSIUS.getSymbol())
+                            CurrentWeatherBox(currentWeatherResponse, fromUnitType(viewModel.tempUnit)?.getTempSymbol() ?: TempUnit.METRIC.getTempSymbol())
                             Spacer(modifier = Modifier.size(16.dp))
-                            WeatherDetailsBox(currentWeatherResponse)
+                            WeatherDetailsBox(currentWeatherResponse, viewModel)
                         }
 
                         is Response.Failure -> {
@@ -186,7 +194,7 @@ fun HomeScreenUI(viewModel: HomeViewModel) {
                                                     .padding(8.dp),
                                                 contentAlignment = Alignment.Center
                                             ) {
-                                                HourlyForecastItem(forecast, fromUnitType(viewModel.tempUnit)?.getSymbol() ?: TempUnit.CELSIUS.getSymbol())
+                                                HourlyForecastItem(forecast, fromUnitType(viewModel.tempUnit)?.getTempSymbol() ?: TempUnit.METRIC.getTempSymbol())
                                             }
                                         }
                                         forecastDays.entries.elementAt(1)
@@ -208,7 +216,7 @@ fun HomeScreenUI(viewModel: HomeViewModel) {
                                                     .padding(8.dp),
                                                 contentAlignment = Alignment.Center
                                             ) {
-                                                HourlyForecastItem(forecast, fromUnitType(viewModel.tempUnit)?.getSymbol() ?: TempUnit.CELSIUS.getSymbol())
+                                                HourlyForecastItem(forecast, fromUnitType(viewModel.tempUnit)?.getTempSymbol() ?: TempUnit.METRIC.getTempSymbol())
                                             }
                                         }
                                     }
@@ -242,7 +250,7 @@ fun HomeScreenUI(viewModel: HomeViewModel) {
                                 Column {
                                     forecastDays.entries.forEach { (date, forecastList) ->
                                         ForecastDay(date, forecastList,
-                                            fromUnitType(viewModel.tempUnit)?.getSymbol() ?: TempUnit.CELSIUS.getSymbol()
+                                            fromUnitType(viewModel.tempUnit)?.getTempSymbol() ?: TempUnit.METRIC.getTempSymbol()
                                         )
                                     }
                                 }
@@ -369,7 +377,7 @@ fun WeatherForecast.forecastDaysHelper(): Map<Int, List<WeatherForecast.Item0>> 
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun WeatherDetailsBox(x0: CurrentWeatherResponse?) {
+fun WeatherDetailsBox(x0: CurrentWeatherResponse?, viewModel: HomeViewModel) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -402,7 +410,7 @@ fun WeatherDetailsBox(x0: CurrentWeatherResponse?) {
                 SmallBox(R.drawable.wind,
                     stringResource(R.string.wind_speed),
                     LanguageManager.formatNumberBasedOnLanguage(x0?.wind?.speed.toString()),
-                    "Km/h")
+                    fromUnitType(viewModel.windSpeedUnit)?.getWindSymbol() ?: TempUnit.METRIC.getWindSymbol())
             }
             Column(
                 verticalArrangement = Arrangement.Center,
@@ -417,7 +425,9 @@ fun WeatherDetailsBox(x0: CurrentWeatherResponse?) {
                 Spacer(modifier = Modifier.size(8.dp))
                 SmallBox(R.drawable.eye,
                     stringResource(R.string.visibility),
-                    LanguageManager.formatNumberBasedOnLanguage(x0?.visibility.toString()), "m")
+                    LanguageManager.formatNumberBasedOnLanguage(x0?.visibility.toString()),
+                    stringResource(R.string.m)
+                )
             }
             Column {
 

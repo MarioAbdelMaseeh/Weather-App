@@ -1,5 +1,6 @@
 package com.mario.skyeye.ui.home
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -17,13 +18,14 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
 
 class HomeViewModel(private val repo: Repo): ViewModel(){
-    val tempUnit = repo.getPreference(Constants.TEMP_UNIT, TempUnit.CELSIUS.getSymbol())
     private val _currentWeatherState: MutableStateFlow<Response<CurrentWeatherResponse?>> = MutableStateFlow(Response.Loading)
     val currentWeatherState: StateFlow<Response<CurrentWeatherResponse?>> = _currentWeatherState.asStateFlow()
     private val _weatherForecastState: MutableStateFlow<Response<WeatherForecast?>> = MutableStateFlow(Response.Loading)
     val weatherForecastState: StateFlow<Response<WeatherForecast?>> = _weatherForecastState.asStateFlow()
 
     fun getCurrentWeather(lat: Double, lon: Double) {
+        var tempUnit = repo.getPreference(Constants.TEMP_UNIT, TempUnit.METRIC.getTempSymbol())
+        Log.i("HomeViewModel", "getCurrentWeather: $lat, $lon, $tempUnit")
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 val response = repo.getCurrentWeather(true, lat, lon,(tempUnit))
@@ -43,6 +45,7 @@ class HomeViewModel(private val repo: Repo): ViewModel(){
         }
     }
     fun getWeatherForecast(lat: Double, lon: Double) {
+        var tempUnit = repo.getPreference(Constants.TEMP_UNIT, TempUnit.METRIC.getTempSymbol())
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 val response = repo.getWeatherForecast(true, lat, lon, (tempUnit))
@@ -61,6 +64,17 @@ class HomeViewModel(private val repo: Repo): ViewModel(){
             }
         }
     }
+    fun updateHomeScreen(): String{
+       val flag =  repo.getPreference(Constants.UPDATE,"false")
+        return flag
+    }
+    fun setUpdateHomeScreen(flag: String){
+        repo.savePreference(Constants.UPDATE,flag)
+    }
+    val tempUnit: String
+        get() = repo.getPreference(Constants.TEMP_UNIT, TempUnit.METRIC.getTempSymbol())
+    val windSpeedUnit: String
+        get() = repo.getPreference(Constants.WIND_UNIT, TempUnit.METRIC.getWindSymbol())
 }
 class HomeFactory(private val repo: Repo): ViewModelProvider.Factory{
     override fun <T : ViewModel> create(modelClass: Class<T>): T {

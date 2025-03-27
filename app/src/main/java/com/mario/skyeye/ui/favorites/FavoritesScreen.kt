@@ -58,7 +58,7 @@ import com.mario.skyeye.R
 import com.mario.skyeye.data.models.FavoriteLocation
 import com.mario.skyeye.data.models.Response
 import com.mario.skyeye.locationState
-import com.mario.skyeye.ui.WeatherIconMapper
+import com.mario.skyeye.utils.WeatherIconMapper
 import com.mario.skyeye.utils.getRelativeTime
 import kotlinx.coroutines.delay
 
