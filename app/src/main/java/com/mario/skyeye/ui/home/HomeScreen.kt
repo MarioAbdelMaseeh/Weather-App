@@ -48,7 +48,6 @@ import com.mario.skyeye.utils.LanguageManager
 import com.mario.skyeye.utils.getDayName
 import com.mario.skyeye.utils.getHourFormTime
 import com.mario.skyeye.utils.getRelativeTime
-import com.mario.skyeye.utils.isInternetAvailable
 import java.text.DateFormat
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -62,15 +61,14 @@ fun HomeScreenUI(viewModel: HomeViewModel) {
     viewModel.locationChangeListener()
     viewModel.getLocation()
     val locationState = viewModel.locationState.collectAsState()
-    val context = LocalContext.current
     LaunchedEffect(locationState.value) {
         if (locationState.value.latitude != 0.0 && locationState.value.longitude != 0.0) {
-            viewModel.fetchWeatherData(locationState.value.latitude, locationState.value.longitude, isInternetAvailable(context))
+            viewModel.fetchWeatherData(locationState.value.latitude, locationState.value.longitude)
         }
     }
     if(viewModel.updateHomeScreen() == "true"){
         if (locationState.value.latitude != 0.0 && locationState.value.longitude != 0.0) {
-            viewModel.fetchWeatherData(locationState.value.latitude, locationState.value.longitude, isInternetAvailable(context))
+            viewModel.fetchWeatherData(locationState.value.latitude, locationState.value.longitude)
         }
         viewModel.setUpdateHomeScreen("false")
     }
