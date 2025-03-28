@@ -1,11 +1,9 @@
 package com.mario.skyeye.ui.details
 
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import com.google.android.gms.maps.model.LatLng
 import com.mario.skyeye.data.models.CurrentWeatherResponse
 import com.mario.skyeye.data.models.FavoriteLocation
 import com.mario.skyeye.data.models.Response
@@ -29,7 +27,7 @@ class DetailsViewModel(private val repo: Repo): ViewModel(){
     val weatherDataState: StateFlow<Response<WeatherData?>> = _weatherDataState.asStateFlow()
 
     private val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
-        _weatherDataState.value = Response.Failure(throwable)
+        _weatherDataState.value = Response.Failure(throwable.message.toString())
     }
 
     fun fetchWeatherData(lat: Double, lon: Double,cityName: String) {
@@ -37,8 +35,8 @@ class DetailsViewModel(private val repo: Repo): ViewModel(){
 
         viewModelScope.launch(Dispatchers.IO + exceptionHandler) {
             try {
-                val currentWeatherDeferred = async { repo.getCurrentWeather(true, lat, lon, tempUnit) }
-                val forecastDeferred = async { repo.getWeatherForecast(true, lat, lon, tempUnit) }
+                val currentWeatherDeferred = async { repo.getCurrentWeather( lat, lon, tempUnit) }
+                val forecastDeferred = async { repo.getWeatherForecast(lat, lon, tempUnit) }
 
                 val currentWeatherFlow = currentWeatherDeferred.await()
                 val forecastFlow = forecastDeferred.await()
@@ -47,13 +45,13 @@ class DetailsViewModel(private val repo: Repo): ViewModel(){
                 var weatherForecast: WeatherForecast? = null
 
                 currentWeatherFlow?.catch { e ->
-                    _weatherDataState.value = Response.Failure(e)
+                    _weatherDataState.value = Response.Failure(e.message.toString())
                 }?.collect { response ->
                     currentWeather = response
                 }
 
                 forecastFlow?.catch { e ->
-                    _weatherDataState.value = Response.Failure(e)
+                    _weatherDataState.value = Response.Failure(e.message.toString())
                 }?.collect { response ->
                     weatherForecast = response
                 }
@@ -65,10 +63,10 @@ class DetailsViewModel(private val repo: Repo): ViewModel(){
                     ))
 
                 } else {
-                    _weatherDataState.value = Response.Failure(Throwable("No Data"))
+                    _weatherDataState.value = Response.Failure("No Data")
                 }
             } catch (e: Exception) {
-                _weatherDataState.value = Response.Failure(e)
+                _weatherDataState.value = Response.Failure(e.message.toString())
             }
         }
     }
@@ -78,8 +76,8 @@ class DetailsViewModel(private val repo: Repo): ViewModel(){
         val tempUnit = repo.getPreference("temp_unit", "°C")
         viewModelScope.launch {
             val favoriteLocation = FavoriteLocation(location.cityName, location.latitude, location.longitude,
-                repo.getCurrentWeather(true, location.latitude, location.longitude,tempUnit)?.firstOrNull()!!,
-                repo.getWeatherForecast(true, location.latitude, location.longitude,tempUnit)?.firstOrNull()!!)
+                repo.getCurrentWeather(location.latitude, location.longitude,tempUnit)?.firstOrNull()!!,
+                repo.getWeatherForecast(location.latitude, location.longitude,tempUnit)?.firstOrNull()!!)
             repo.insertLocation(favoriteLocation)
         }
     }

@@ -16,5 +16,11 @@ class LocalDataSourceImpl (private val weatherDao: WeatherDao): LocalDataSource 
         return weatherDao.insert(favoriteLocation)
     }
 
+    override suspend fun getFavoriteLocationByCityName(cityName: String): Flow<FavoriteLocation?> {
+        return weatherDao.getFavoriteLocationByCityName(cityName)
+    }
+
+
+
 }
 

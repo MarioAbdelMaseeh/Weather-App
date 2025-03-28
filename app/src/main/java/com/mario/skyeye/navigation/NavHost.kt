@@ -2,9 +2,13 @@ package com.mario.skyeye.navigation
 
 import android.os.Build
 import androidx.annotation.RequiresApi
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Map
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
@@ -13,7 +17,6 @@ import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
 import com.mario.skyeye.data.local.AppDataBase
 import com.mario.skyeye.data.local.LocalDataSourceImpl
-import com.mario.skyeye.data.models.FavoriteLocation
 import com.mario.skyeye.data.remote.RemoteDataSourceImpl
 import com.mario.skyeye.data.remote.RetrofitHelper
 import com.mario.skyeye.data.repo.RepoImpl
@@ -43,6 +46,7 @@ fun SetupNavHost(
     showMap: MutableState<Boolean>,
     snackbarHostState: SnackbarHostState,
     showNavBar: MutableState<Boolean>,
+    icon: MutableState<ImageVector>,
     onFabClick: MutableState<() -> Unit>
 ){
     var buttonAction = false
@@ -62,6 +66,7 @@ fun SetupNavHost(
         composable<FavoritesScreen> {
             showMap.value = true
             showNavBar.value = true
+            icon.value = Icons.Default.Map
             FavoritesScreenUI(viewModel(
                 factory = FavoritesFactory(RepoImpl.getInstance(RemoteDataSourceImpl(RetrofitHelper.service),
                     LocalDataSourceImpl(AppDataBase.getInstance(navHostController.context).weatherDao()),
@@ -78,8 +83,9 @@ fun SetupNavHost(
             }
         }
         composable<WeatherAlertsScreen> {
-            showMap.value = false
+            showMap.value = true
             showNavBar.value = true
+            icon.value = Icons.Default.Add
             //WeatherAlertsScreenUI()
         }
         composable<SettingsScreen> {
@@ -124,6 +130,4 @@ fun SetupNavHost(
             )
         }
     }
-
-
 }

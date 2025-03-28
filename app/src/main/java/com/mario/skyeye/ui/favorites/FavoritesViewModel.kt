@@ -6,14 +6,10 @@ import androidx.lifecycle.viewModelScope
 import com.mario.skyeye.data.models.FavoriteLocation
 import com.mario.skyeye.data.models.Response
 import com.mario.skyeye.data.repo.Repo
-import com.mario.skyeye.enums.TempUnit
-import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
@@ -24,9 +20,10 @@ class FavoritesViewModel(val repo: Repo) : ViewModel(){
     fun fetchFavoriteLocations() {
         viewModelScope.launch {
             repo.getAllLocations()
-                .map { it?.sortedBy { selection -> selection?.cityName } }
+                .map { it?.sortedBy { selection -> selection?.cityName }
+                    ?.filterNot { it?.cityName == "home" } }
                 .catch { e ->
-                    _favoriteLocations.value = Response.Failure(e)
+                    _favoriteLocations.value = Response.Failure(e.message.toString())
                 }
                 .collect { locations ->
                 _favoriteLocations.value = Response.Success<List<FavoriteLocation?>?>(locations)

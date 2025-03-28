@@ -48,6 +48,7 @@ import com.mario.skyeye.utils.LanguageManager
 import com.mario.skyeye.utils.getDayName
 import com.mario.skyeye.utils.getHourFormTime
 import com.mario.skyeye.utils.getRelativeTime
+import com.mario.skyeye.utils.isInternetAvailable
 import java.text.DateFormat
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -57,30 +58,19 @@ import java.util.Locale
 @OptIn(ExperimentalGlideComposeApi::class)
 @Composable
 fun HomeScreenUI(viewModel: HomeViewModel) {
-//    val currentWeatherResponse = viewModel.currentWeatherState.collectAsState()
-//    val weatherForecastResponse = viewModel.weatherForecastState.collectAsState()
     val weatherData = viewModel.weatherDataState.collectAsState()
     viewModel.locationChangeListener()
     viewModel.getLocation()
     val locationState = viewModel.locationState.collectAsState()
+    val context = LocalContext.current
     LaunchedEffect(locationState.value) {
         if (locationState.value.latitude != 0.0 && locationState.value.longitude != 0.0) {
-            viewModel.fetchWeatherData(locationState.value.latitude, locationState.value.longitude)
-//            viewModel.getCurrentWeather(locationState.value.latitude, locationState.value.longitude)
-//            viewModel.getWeatherForecast(
-//                locationState.value.latitude,
-//                locationState.value.longitude
-//            )
+            viewModel.fetchWeatherData(locationState.value.latitude, locationState.value.longitude, isInternetAvailable(context))
         }
     }
     if(viewModel.updateHomeScreen() == "true"){
         if (locationState.value.latitude != 0.0 && locationState.value.longitude != 0.0) {
-            viewModel.fetchWeatherData(locationState.value.latitude, locationState.value.longitude)
-//            viewModel.getCurrentWeather(locationState.value.latitude, locationState.value.longitude)
-//            viewModel.getWeatherForecast(
-//                locationState.value.latitude,
-//                locationState.value.longitude
-//            )
+            viewModel.fetchWeatherData(locationState.value.latitude, locationState.value.longitude, isInternetAvailable(context))
         }
         viewModel.setUpdateHomeScreen("false")
     }
@@ -252,7 +242,7 @@ fun HomeScreenUI(viewModel: HomeViewModel) {
                             }
                         }
                         is Response.Failure -> {
-                            Text(text = "Error: ${(weatherData.value as Response.Failure).error.message}")
+                            Text(text = "Error: ${(weatherData.value as Response.Failure).error}")
                         }
                     }
                 }

@@ -8,4 +8,5 @@ interface LocalDataSource {
     suspend fun getAllLocations(): Flow<List<FavoriteLocation?>?>
     suspend fun deleteLocation(favoriteLocation: FavoriteLocation): Int
     suspend fun insertLocation(favoriteLocation: FavoriteLocation): Long
+    suspend fun getFavoriteLocationByCityName(cityName: String):  Flow<FavoriteLocation?>
 }

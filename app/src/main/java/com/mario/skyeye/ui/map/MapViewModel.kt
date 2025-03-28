@@ -117,8 +117,8 @@ class MapViewModel (private val repo: Repo, private val placesClient: PlacesClie
         val tempUnit = repo.getPreference("temp_unit", "°C")
         viewModelScope.launch {
             if (latLng != null){
-                val currentWeatherResponse = repo.getCurrentWeather(true, latLng.latitude, latLng.longitude,(tempUnit))?.first()
-                repo.insertLocation(FavoriteLocation(cityName.value, latLng.latitude, latLng.longitude, currentWeatherResponse!!, repo.getWeatherForecast(true, latLng.latitude, latLng.longitude, (tempUnit))?.first()!!))
+                val currentWeatherResponse = repo.getCurrentWeather( latLng.latitude, latLng.longitude,(tempUnit))?.first()
+                repo.insertLocation(FavoriteLocation(cityName.value, latLng.latitude, latLng.longitude, currentWeatherResponse!!, repo.getWeatherForecast( latLng.latitude, latLng.longitude, (tempUnit))?.first()!!))
             }else{
                 Log.i("TAG", "saveLocation: Location is null")
             }

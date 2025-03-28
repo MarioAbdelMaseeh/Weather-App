@@ -39,6 +39,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -74,6 +75,7 @@ class MainActivity : ComponentActivity() {
     lateinit var snackbarHostState: SnackbarHostState
     lateinit var showNavBar : MutableState<Boolean>
     lateinit var onFabClick: MutableState<() -> Unit>
+    lateinit var icon: MutableState<ImageVector>
     private lateinit var sharedPreferences: SharedPreferences
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -86,6 +88,7 @@ class MainActivity : ComponentActivity() {
             showNavBar = remember { mutableStateOf(false) }
             message = remember { mutableStateOf("") }
             onFabClick = remember { mutableStateOf({}) }
+            icon = remember { mutableStateOf(Icons.Default.Map) }
             geocoder = Geocoder(this)
             MainUi()
         }
@@ -183,14 +186,14 @@ class MainActivity : ComponentActivity() {
                         contentColor = Color.White,
                         elevation = FloatingActionButtonDefaults.elevation(8.dp),
                     ) {
-                        Icon(imageVector = Icons.Default.Map, contentDescription = "Add")
+                        Icon(imageVector = icon.value, contentDescription = "Add")
                     }
                 }
             }
         ) {
             innerPadding ->
             Box(modifier = Modifier.padding(innerPadding)) {
-                SetupNavHost(navController, showMap, snackbarHostState, showNavBar, onFabClick)
+                SetupNavHost(navController, showMap, snackbarHostState, showNavBar,icon ,onFabClick)
             }
         }
     }
