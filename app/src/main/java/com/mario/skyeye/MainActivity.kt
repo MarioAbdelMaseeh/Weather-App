@@ -44,6 +44,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat
 import androidx.core.content.edit
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.compose.rememberNavController
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationCallback
@@ -58,6 +59,10 @@ import com.mario.skyeye.navigation.ScreensRoutes
 import com.mario.skyeye.navigation.SetupNavHost
 import com.mario.skyeye.utils.Constants
 import com.mario.skyeye.utils.Constants.REQUEST_CODE_LOCATION
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.launch
 import java.util.Locale
 
 
@@ -207,6 +212,22 @@ class MainActivity : ComponentActivity() {
                 requestPermission()
             }
         }
+        lifecycleScope.launch {
+            onChangeGPS().collect {
+                if (it == MapHelper.GPS.mapType) {
+                    if (checkPermission()) {
+                        if (isLocationEnabled()) {
+                            getLocation()
+                            sharedPreferences.edit{putString(Constants.UPDATE,"true")}
+                        } else {
+                            enableGps()
+                        }
+                    } else {
+                        requestPermission()
+                    }
+                }
+            }
+        }
     }
 
     override fun onRequestPermissionsResult(
@@ -271,9 +292,24 @@ class MainActivity : ComponentActivity() {
     private fun applyLanguage(languageCode: String) {
         val locale = Locale(languageCode)
         Locale.setDefault(locale)
-
         val config = resources.configuration
         config.setLocale(locale)
         resources.updateConfiguration(config, resources.displayMetrics)
+    }
+
+    fun onChangeGPS(): Flow<String> = callbackFlow {
+        val listener = SharedPreferences.OnSharedPreferenceChangeListener { sharedPreferences, key ->
+            if (key == Constants.LOCATION) {
+                sharedPreferences.getString(key, MapHelper.GPS.mapType)?.let {
+                    if (it == MapHelper.GPS.mapType) {
+                        trySend(it)
+                    }
+                }
+            }
+        }
+        sharedPreferences.registerOnSharedPreferenceChangeListener(listener)
+        awaitClose {
+            sharedPreferences.unregisterOnSharedPreferenceChangeListener(listener)
+        }
     }
 }

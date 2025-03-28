@@ -39,6 +39,7 @@ import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.mario.skyeye.R
 import com.mario.skyeye.data.models.CurrentWeatherResponse
 import com.mario.skyeye.data.models.Response
+import com.mario.skyeye.data.models.WeatherData
 import com.mario.skyeye.data.models.WeatherForecast
 import com.mario.skyeye.enums.TempUnit
 import com.mario.skyeye.enums.TempUnit.Companion.fromUnitType
@@ -56,27 +57,30 @@ import java.util.Locale
 @OptIn(ExperimentalGlideComposeApi::class)
 @Composable
 fun HomeScreenUI(viewModel: HomeViewModel) {
-    val currentWeatherResponse = viewModel.currentWeatherState.collectAsState()
-    val weatherForecastResponse = viewModel.weatherForecastState.collectAsState()
+//    val currentWeatherResponse = viewModel.currentWeatherState.collectAsState()
+//    val weatherForecastResponse = viewModel.weatherForecastState.collectAsState()
+    val weatherData = viewModel.weatherDataState.collectAsState()
     viewModel.locationChangeListener()
     viewModel.getLocation()
     val locationState = viewModel.locationState.collectAsState()
     LaunchedEffect(locationState.value) {
         if (locationState.value.latitude != 0.0 && locationState.value.longitude != 0.0) {
-            viewModel.getCurrentWeather(locationState.value.latitude, locationState.value.longitude)
-            viewModel.getWeatherForecast(
-                locationState.value.latitude,
-                locationState.value.longitude
-            )
+            viewModel.fetchWeatherData(locationState.value.latitude, locationState.value.longitude)
+//            viewModel.getCurrentWeather(locationState.value.latitude, locationState.value.longitude)
+//            viewModel.getWeatherForecast(
+//                locationState.value.latitude,
+//                locationState.value.longitude
+//            )
         }
     }
     if(viewModel.updateHomeScreen() == "true"){
         if (locationState.value.latitude != 0.0 && locationState.value.longitude != 0.0) {
-            viewModel.getCurrentWeather(locationState.value.latitude, locationState.value.longitude)
-            viewModel.getWeatherForecast(
-                locationState.value.latitude,
-                locationState.value.longitude
-            )
+            viewModel.fetchWeatherData(locationState.value.latitude, locationState.value.longitude)
+//            viewModel.getCurrentWeather(locationState.value.latitude, locationState.value.longitude)
+//            viewModel.getWeatherForecast(
+//                locationState.value.latitude,
+//                locationState.value.longitude
+//            )
         }
         viewModel.setUpdateHomeScreen("false")
     }
@@ -99,7 +103,7 @@ fun HomeScreenUI(viewModel: HomeViewModel) {
                 verticalArrangement = Arrangement.Center
             ){
                 item {
-                    when (currentWeatherResponse.value) {
+                    when (weatherData.value) {
                         is Response.Loading -> {
                             Column(
                                 modifier = Modifier.fillMaxSize(),
@@ -113,11 +117,11 @@ fun HomeScreenUI(viewModel: HomeViewModel) {
 
                         is Response.Success -> {
                             val currentWeatherResponse =
-                                (currentWeatherResponse.value as Response.Success<CurrentWeatherResponse?>).data
+                                (weatherData.value as Response.Success<WeatherData?>).data?.currentWeatherResponse
                             Row(
                                 verticalAlignment = Alignment.Top,
                                 horizontalArrangement = Arrangement.Center
-                            ){
+                            ) {
                                 Image(
                                     painter = painterResource(id = R.drawable.marker),
                                     contentDescription = stringResource(R.string.location_icon),
@@ -136,51 +140,30 @@ fun HomeScreenUI(viewModel: HomeViewModel) {
                                     fontWeight = FontWeight.Bold
                                 )
                             }
-                            CurrentWeatherBox(currentWeatherResponse, fromUnitType(viewModel.tempUnit)?.getTempSymbol() ?: TempUnit.METRIC.getTempSymbol())
+                            CurrentWeatherBox(currentWeatherResponse,
+                                fromUnitType(viewModel.tempUnit)?.getTempSymbol()
+                                    ?: TempUnit.METRIC.getTempSymbol()
+                            )
                             Spacer(modifier = Modifier.size(16.dp))
                             WeatherDetailsBox(currentWeatherResponse, viewModel)
-                        }
-
-                        is Response.Failure -> {
-                            Text(text = "Error: ${(currentWeatherResponse.value as Response.Failure).error.message}")
-                        }
-                    }
-                }
-                item {
-                    when (weatherForecastResponse.value) {
-                        is Response.Failure -> {
-                            Text(text = "Error: ${(weatherForecastResponse.value as Response.Failure).error.message}")
-                        }
-
-                        is Response.Loading -> {
-                            if (currentWeatherResponse.value is Response.Success) {
-                                Box(
-                                    modifier = Modifier.fillMaxSize(),
-                                    contentAlignment = Alignment.Center
-                                ){
-                                    CircularProgressIndicator()
-                                }
-                            }
-                        }
-                        is Response.Success -> {
                             val weatherForecastResponse =
-                                (weatherForecastResponse.value as Response.Success<WeatherForecast>).data
-                            val forecastDays = weatherForecastResponse.forecastDaysHelper()
+                                (weatherData.value as Response.Success<WeatherData>).data.forecastResponse
+                            val forecastDays = weatherForecastResponse?.forecastDaysHelper()
                             Column(
                                 modifier = Modifier.fillMaxWidth()
-                            ){
+                            ) {
                                 Text(
                                     text = stringResource(R.string.hourly_forecast),
                                     color = colorResource(id = R.color.black),
                                     fontSize = 24.sp,
                                     fontWeight = FontWeight.Bold,
-                                    modifier = Modifier.padding(16.dp,0.dp)
+                                    modifier = Modifier.padding(16.dp, 0.dp)
                                 )
                                 LazyRow(
                                     modifier = Modifier.padding(8.dp)
                                 ) {
                                     item {
-                                        forecastDays.entries.first().value.forEach { forecast ->
+                                        forecastDays?.entries?.first()?.value?.forEach { forecast ->
                                             Box(
                                                 modifier = Modifier
                                                     .fillMaxWidth()
@@ -198,31 +181,37 @@ fun HomeScreenUI(viewModel: HomeViewModel) {
                                                     .padding(8.dp),
                                                 contentAlignment = Alignment.Center
                                             ) {
-                                                HourlyForecastItem(forecast, fromUnitType(viewModel.tempUnit)?.getTempSymbol() ?: TempUnit.METRIC.getTempSymbol())
+                                                HourlyForecastItem(forecast,
+                                                    fromUnitType(viewModel.tempUnit)?.getTempSymbol()
+                                                        ?: TempUnit.METRIC.getTempSymbol()
+                                                )
                                             }
                                         }
-                                        forecastDays.entries.elementAt(1)
-                                            .value.forEach { forecast ->
-                                            Box(
-                                                modifier = Modifier
-                                                    .fillMaxWidth()
-                                                    .defaultMinSize(100.dp)
-                                                    .padding(8.dp, 16.dp)
-                                                    .background(
-                                                        brush = Brush.horizontalGradient(
-                                                            colors = listOf(
-                                                                colorResource(id = R.color.teal_700),
-                                                                colorResource(id = R.color.teal_700)
-                                                            )
-                                                        ),
-                                                        shape = RoundedCornerShape(16.dp)
+                                        forecastDays?.entries?.elementAt(1)
+                                            ?.value?.forEach { forecast ->
+                                                Box(
+                                                    modifier = Modifier
+                                                        .fillMaxWidth()
+                                                        .defaultMinSize(100.dp)
+                                                        .padding(8.dp, 16.dp)
+                                                        .background(
+                                                            brush = Brush.horizontalGradient(
+                                                                colors = listOf(
+                                                                    colorResource(id = R.color.teal_700),
+                                                                    colorResource(id = R.color.teal_700)
+                                                                )
+                                                            ),
+                                                            shape = RoundedCornerShape(16.dp)
+                                                        )
+                                                        .padding(8.dp),
+                                                    contentAlignment = Alignment.Center
+                                                ) {
+                                                    HourlyForecastItem(forecast,
+                                                        fromUnitType(viewModel.tempUnit)?.getTempSymbol()
+                                                            ?: TempUnit.METRIC.getTempSymbol()
                                                     )
-                                                    .padding(8.dp),
-                                                contentAlignment = Alignment.Center
-                                            ) {
-                                                HourlyForecastItem(forecast, fromUnitType(viewModel.tempUnit)?.getTempSymbol() ?: TempUnit.METRIC.getTempSymbol())
+                                                }
                                             }
-                                        }
                                     }
                                 }
                             }
@@ -252,13 +241,18 @@ fun HomeScreenUI(viewModel: HomeViewModel) {
                                     .padding(8.dp)
                             ) {
                                 Column {
-                                    forecastDays.entries.forEach { (date, forecastList) ->
-                                        ForecastDay(date, forecastList,
-                                            fromUnitType(viewModel.tempUnit)?.getTempSymbol() ?: TempUnit.METRIC.getTempSymbol()
+                                    forecastDays?.entries?.forEach { (date, forecastList) ->
+                                        ForecastDay(
+                                            date, forecastList,
+                                            fromUnitType(viewModel.tempUnit)?.getTempSymbol()
+                                                ?: TempUnit.METRIC.getTempSymbol()
                                         )
                                     }
                                 }
                             }
+                        }
+                        is Response.Failure -> {
+                            Text(text = "Error: ${(weatherData.value as Response.Failure).error.message}")
                         }
                     }
                 }

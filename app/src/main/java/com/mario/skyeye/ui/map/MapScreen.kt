@@ -49,7 +49,6 @@ import com.google.maps.android.compose.rememberCameraPositionState
 import com.google.maps.android.compose.rememberMarkerState
 import com.mario.skyeye.R
 import com.mario.skyeye.enums.MapHelper
-import com.mario.skyeye.enums.MapHelper.Companion.fromMapDisplayName
 import kotlinx.coroutines.FlowPreview
 
 @OptIn(FlowPreview::class)
@@ -170,6 +169,7 @@ fun MapUi(viewModel: MapViewModel, navController: NavController, snackbarHostSta
                             if (buttonAction) {
                                 viewModel.setDefaultLocation(selectedLocation)
                                 viewModel.updatePreference("location", MapHelper.MAP.mapType)
+
 
                             }else
                             viewModel.saveLocation(selectedLocation)
