@@ -27,6 +27,8 @@ import com.mario.skyeye.navigation.ScreensRoutes.HomeScreen
 import com.mario.skyeye.navigation.ScreensRoutes.MapScreen
 import com.mario.skyeye.navigation.ScreensRoutes.SettingsScreen
 import com.mario.skyeye.navigation.ScreensRoutes.WeatherAlertsScreen
+import com.mario.skyeye.ui.alert.WeatherAlertsFactory
+import com.mario.skyeye.ui.alert.WeatherAlertsScreenUI
 import com.mario.skyeye.ui.details.DetailsFactory
 import com.mario.skyeye.ui.details.DetailsScreenUI
 import com.mario.skyeye.ui.favorites.FavoritesFactory
@@ -86,7 +88,14 @@ fun SetupNavHost(
             showMap.value = true
             showNavBar.value = true
             icon.value = Icons.Default.Add
-            //WeatherAlertsScreenUI()
+            WeatherAlertsScreenUI(
+                viewModel(
+                    factory = WeatherAlertsFactory(RepoImpl.getInstance(RemoteDataSourceImpl(RetrofitHelper.service),
+                        LocalDataSourceImpl(AppDataBase.getInstance(navHostController.context).weatherDao()),
+                        AppPreference(LocalContext.current)),
+                        )
+                ),onFabClick
+            )
         }
         composable<SettingsScreen> {
             showMap.value = false
