@@ -10,17 +10,22 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.toRoute
 import com.mario.skyeye.data.local.AppDataBase
 import com.mario.skyeye.data.local.LocalDataSourceImpl
+import com.mario.skyeye.data.models.FavoriteLocation
 import com.mario.skyeye.data.remote.RemoteDataSourceImpl
 import com.mario.skyeye.data.remote.RetrofitHelper
 import com.mario.skyeye.data.repo.RepoImpl
 import com.mario.skyeye.data.sharedprefrence.AppPreference
+import com.mario.skyeye.navigation.ScreensRoutes.DetailsScreen
 import com.mario.skyeye.navigation.ScreensRoutes.FavoritesScreen
 import com.mario.skyeye.navigation.ScreensRoutes.HomeScreen
 import com.mario.skyeye.navigation.ScreensRoutes.MapScreen
 import com.mario.skyeye.navigation.ScreensRoutes.SettingsScreen
 import com.mario.skyeye.navigation.ScreensRoutes.WeatherAlertsScreen
+import com.mario.skyeye.ui.details.DetailsFactory
+import com.mario.skyeye.ui.details.DetailsScreenUI
 import com.mario.skyeye.ui.favorites.FavoritesFactory
 import com.mario.skyeye.ui.favorites.FavoritesScreenUI
 import com.mario.skyeye.ui.home.HomeFactory
@@ -61,7 +66,11 @@ fun SetupNavHost(
                 factory = FavoritesFactory(RepoImpl.getInstance(RemoteDataSourceImpl(RetrofitHelper.service),
                     LocalDataSourceImpl(AppDataBase.getInstance(navHostController.context).weatherDao()),
                     AppPreference(LocalContext.current)))
-            ), snackbarHostState
+            ), snackbarHostState,
+                navToDetails = { location ->
+                    buttonAction = true
+                    navHostController.navigate(DetailsScreen(location))
+                }
             )
             onFabClick.value = {
                 buttonAction = false
@@ -94,7 +103,25 @@ fun SetupNavHost(
             ),navHostController,
                 snackbarHostState,
                  buttonAction)
-
+        }
+        composable<DetailsScreen> {
+            showMap.value = false
+            showNavBar.value = false
+            val detailsScreen : DetailsScreen = it.toRoute()
+            DetailsScreenUI(
+                viewModel(
+                    factory = DetailsFactory(
+                        RepoImpl.getInstance(
+                            RemoteDataSourceImpl(RetrofitHelper.service),
+                            LocalDataSourceImpl(
+                                AppDataBase.getInstance(LocalContext.current).weatherDao()
+                            ),
+                            AppPreference(LocalContext.current)
+                        )
+                    )
+                ),
+                location = detailsScreen.favoriteLocation
+            )
         }
     }
 

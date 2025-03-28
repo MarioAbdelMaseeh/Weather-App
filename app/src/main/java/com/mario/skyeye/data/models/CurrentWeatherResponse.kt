@@ -1,6 +1,7 @@
 package com.mario.skyeye.data.models
 
 import com.google.gson.annotations.SerializedName
+import kotlinx.serialization.Serializable
 
 data class CurrentWeatherResponse(
     val base: String,

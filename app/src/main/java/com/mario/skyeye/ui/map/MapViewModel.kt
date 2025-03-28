@@ -27,7 +27,7 @@ import kotlinx.coroutines.launch
 import kotlin.time.Duration.Companion.milliseconds
 
 class MapViewModel (private val repo: Repo, private val placesClient: PlacesClient) : ViewModel(){
-    val tempUnit = repo.getPreference("temp_unit", "°C")
+
     private val _searchQuery = MutableStateFlow("")
     val searchQuery = _searchQuery.asStateFlow()
 
@@ -114,6 +114,7 @@ class MapViewModel (private val repo: Repo, private val placesClient: PlacesClie
         }
     }
     fun saveLocation(latLng: LatLng?){
+        val tempUnit = repo.getPreference("temp_unit", "°C")
         viewModelScope.launch {
             if (latLng != null){
                 val currentWeatherResponse = repo.getCurrentWeather(true, latLng.latitude, latLng.longitude,(tempUnit))?.first()

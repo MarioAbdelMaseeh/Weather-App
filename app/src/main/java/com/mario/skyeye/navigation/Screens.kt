@@ -1,5 +1,6 @@
 package com.mario.skyeye.navigation
 
+import com.mario.skyeye.data.models.FavoriteLocation
 import kotlinx.serialization.Serializable
 @Serializable
 sealed class ScreensRoutes(val route: String) {
@@ -13,4 +14,6 @@ sealed class ScreensRoutes(val route: String) {
     object WeatherAlertsScreen : ScreensRoutes("weather_alerts")
     @Serializable
     object MapScreen : ScreensRoutes("map")
+    @Serializable
+    class DetailsScreen(val favoriteLocation: String) : ScreensRoutes("details")
 }

@@ -5,6 +5,7 @@ import androidx.room.TypeConverter
 import androidx.room.TypeConverters
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
+import kotlinx.serialization.Serializable
 
 @Entity(tableName = "favorite_locations", primaryKeys = ["cityName"])
 @TypeConverters(WeatherConverters::class)

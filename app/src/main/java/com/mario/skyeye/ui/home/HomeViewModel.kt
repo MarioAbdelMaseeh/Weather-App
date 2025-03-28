@@ -12,6 +12,7 @@ import com.mario.skyeye.data.models.WeatherForecast
 import com.mario.skyeye.data.repo.Repo
 import com.mario.skyeye.enums.TempUnit
 import com.mario.skyeye.utils.Constants
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -36,11 +37,13 @@ class HomeViewModel(private val repo: Repo): ViewModel(){
         getLocation()
         locationChangeListener()
     }
-
-    fun fetchWeatherData(lat: Double, lon: Double) {
+    private val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
+        _weatherDataState.value = Response.Failure(throwable)
+    }
+    fun fetchWeatherData(lat: Double, lon: Double,) {
         val tempUnit = repo.getPreference(Constants.TEMP_UNIT, TempUnit.METRIC.getTempSymbol())
 
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch(Dispatchers.IO + exceptionHandler) {
             try {
                 val currentWeatherDeferred = async { repo.getCurrentWeather(true, lat, lon, tempUnit) }
                 val forecastDeferred = async { repo.getWeatherForecast(true, lat, lon, tempUnit) }

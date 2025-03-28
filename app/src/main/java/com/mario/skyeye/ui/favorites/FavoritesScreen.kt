@@ -53,9 +53,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.google.android.gms.maps.model.LatLng
+import com.google.gson.Gson
 import com.mario.skyeye.R
 import com.mario.skyeye.data.models.FavoriteLocation
 import com.mario.skyeye.data.models.Response
+import com.mario.skyeye.data.models.WeatherConverters
 import com.mario.skyeye.utils.WeatherIconMapper
 import com.mario.skyeye.utils.getRelativeTime
 import kotlinx.coroutines.delay
@@ -66,6 +68,7 @@ import kotlinx.coroutines.delay
 fun FavoritesScreenUI(
     viewModel: FavoritesViewModel,
     snackbarHostState: SnackbarHostState,
+    navToDetails: (String) -> Unit
 ) {
     val favoriteLocations by viewModel.favoriteLocations.collectAsStateWithLifecycle()
     viewModel.fetchFavoriteLocations()
@@ -127,7 +130,7 @@ fun FavoritesScreenUI(
                                     val location = favoriteLocations?.get(index)
                                     location?.let {
                                         SwipeToDeleteContainer(item = it, onDelete = { viewModel.deleteLocation(it) }, snackbarHostState = snackbarHostState, onRestore = { viewModel.fetchFavoriteLocations()} ) { location ->
-                                            FavoriteLocationItem(location = location)
+                                            FavoriteLocationItem(viewModel = viewModel,location = location, navToDetails = navToDetails)
                                         }
                                     }
                                 }
@@ -140,15 +143,16 @@ fun FavoritesScreenUI(
     }
 
 @Composable
-fun FavoriteLocationItem(location: FavoriteLocation,locationState: MutableState<LatLng> = mutableStateOf(LatLng(0.0,0.0))) {
+fun FavoriteLocationItem(viewModel: FavoritesViewModel,location: FavoriteLocation, navToDetails: (String) -> Unit) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .padding(8.dp)
             .clickable(
                 onClick = {
-//                    locationState.value.latitude = location.latitude
-//                    locationState.value.longitude = location.longitude
+                    val gson = Gson()
+                    val json = gson.toJson(location)
+                    navToDetails(json)
                 }
             ),
         elevation = CardDefaults.cardElevation(4.dp),
