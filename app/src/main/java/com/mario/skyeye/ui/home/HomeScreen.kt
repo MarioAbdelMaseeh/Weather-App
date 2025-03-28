@@ -525,16 +525,6 @@ private fun CurrentWeatherBox(response: CurrentWeatherResponse?, unit: String, c
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
-
-                    Image(
-                        painter = painterResource(
-                            id = WeatherIconMapper.getWeatherIcon(
-                                response?.weather?.get(0)?.icon ?: "01d"
-                            )
-                        ),
-                        contentDescription = "Weather Icon",
-                        modifier = Modifier.size(150.dp)
-                    )
                 Column(
                     verticalArrangement = Arrangement.Center,
                     horizontalAlignment = Alignment.CenterHorizontally
@@ -544,7 +534,6 @@ private fun CurrentWeatherBox(response: CurrentWeatherResponse?, unit: String, c
                         color = colors.textColor,
                         fontSize = 24.sp,
                         fontWeight = FontWeight.Bold,
-                        modifier = Modifier.fillMaxSize(),
                         textAlign = TextAlign.Center
                     )
                     Spacer(
@@ -555,7 +544,6 @@ private fun CurrentWeatherBox(response: CurrentWeatherResponse?, unit: String, c
                         color = colors.textColor,
                         fontSize = 40.sp,
                         fontWeight = FontWeight.Bold,
-                        modifier = Modifier.fillMaxSize(),
                         textAlign = TextAlign.Center
                     )
                     Text(
@@ -570,6 +558,15 @@ private fun CurrentWeatherBox(response: CurrentWeatherResponse?, unit: String, c
                         fontSize = 16.sp
                     )
                 }
+            Image(
+                painter = painterResource(
+                    id = WeatherIconMapper.getWeatherIcon(
+                        response?.weather?.get(0)?.icon ?: "01d"
+                    )
+                ),
+                contentDescription = "Weather Icon",
+                modifier = Modifier.size(150.dp)
+            )
         }
     }
 }
