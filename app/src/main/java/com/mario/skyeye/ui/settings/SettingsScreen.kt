@@ -37,17 +37,18 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.mario.skyeye.R
 import com.mario.skyeye.enums.Languages
 import com.mario.skyeye.enums.Languages.Companion.fromCode
-import com.mario.skyeye.enums.Languages.Companion.fromDisplayName
+import com.mario.skyeye.enums.Languages.Companion.fromLanguageDisplayName
+import com.mario.skyeye.enums.MapHelper
+import com.mario.skyeye.enums.MapHelper.Companion.fromMapDisplayName
+import com.mario.skyeye.enums.MapHelper.Companion.fromMapType
 import com.mario.skyeye.enums.TempUnit
 import com.mario.skyeye.enums.TempUnit.Companion.fromSymbol
 import com.mario.skyeye.enums.TempUnit.Companion.fromUnitType
-import com.mario.skyeye.enums.TempUnit.Companion.fromWindSymbol
 import com.mario.skyeye.enums.TempUnit.Companion.fromWindUnitType
-import com.mario.skyeye.utils.Constants
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SettingsScreen(viewModel: SettingsViewModel) {
+fun SettingsScreen(viewModel: SettingsViewModel, function: () -> Unit) {
     val selectedWindSpeed by viewModel.selectedWindSpeed.collectAsStateWithLifecycle()
     val selectedLanguage by viewModel.selectedLanguage.collectAsStateWithLifecycle()
     val selectedLocation by viewModel.selectedLocation.collectAsStateWithLifecycle()
@@ -98,9 +99,7 @@ fun SettingsScreen(viewModel: SettingsViewModel) {
                         TempUnit.IMPERIAL.getWindSymbol(),
                     ),
                     selectedOption = fromWindUnitType(selectedWindSpeed)?.getWindSymbol() ?: TempUnit.METRIC.getWindSymbol(),
-                    onOptionSelected = {
-                       // viewModel.updatePreference(Constants.WIND_UNIT, fromWindSymbol(it)?.unitType?: TempUnit.METRIC.windEnSymbol)
-                    }
+                    onOptionSelected = {}
                 )
             }
 
@@ -112,7 +111,7 @@ fun SettingsScreen(viewModel: SettingsViewModel) {
                         Languages.ARABIC.displayName
                     ),
                     selectedOption = fromCode(selectedLanguage)?.displayName ?: Languages.ENGLISH.displayName,
-                    onOptionSelected = { viewModel.updatePreference("language", fromDisplayName(it)?.code ?: Languages.ENGLISH.code)
+                    onOptionSelected = { viewModel.updatePreference("language", fromLanguageDisplayName(it)?.code ?: Languages.ENGLISH.code)
                         restartActivity(context)}
                 )
             }
@@ -121,11 +120,17 @@ fun SettingsScreen(viewModel: SettingsViewModel) {
             SettingsCategory(title = stringResource(R.string.location)) {
                 ToggleButtonGroup(
                     options = listOf(
-                        stringResource(R.string.gps),
-                        stringResource(R.string.map)
+                        MapHelper.GPS.getDisplayName(),
+                        MapHelper.MAP.getDisplayName()
                     ),
-                    selectedOption = selectedLocation,
-                    onOptionSelected = { viewModel.updatePreference("location", it) }
+                    selectedOption = fromMapType(selectedLocation)?.getDisplayName() ?: MapHelper.GPS.getDisplayName(),
+                    onOptionSelected = {
+                        if (it == MapHelper.MAP.getDisplayName()){
+                            function()
+                        }else{
+                            viewModel.updatePreference("location", fromMapDisplayName(it)?.mapType ?: MapHelper.GPS.mapType)
+                        }
+                    }
                 )
             }
 

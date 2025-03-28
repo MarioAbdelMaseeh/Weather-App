@@ -8,4 +8,6 @@ object Constants {
     const val LOCATION = "location"
     const val THEME = "theme"
     const val UPDATE = "update"
+    const val CURRENT_LOCATION = "current_location"
+    const val REQUEST_CODE_LOCATION = 5005
 }

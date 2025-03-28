@@ -26,6 +26,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -47,12 +48,12 @@ import com.google.maps.android.compose.Marker
 import com.google.maps.android.compose.rememberCameraPositionState
 import com.google.maps.android.compose.rememberMarkerState
 import com.mario.skyeye.R
-import com.mario.skyeye.locationState
+import com.mario.skyeye.enums.MapHelper
 import kotlinx.coroutines.FlowPreview
 
 @OptIn(FlowPreview::class)
 @Composable
-fun MapUi(viewModel: MapViewModel, navController: NavController) {
+fun MapUi(viewModel: MapViewModel, navController: NavController, snackbarHostState: SnackbarHostState, buttonAction: Boolean) {
     val searchQuery by viewModel.searchQuery.collectAsStateWithLifecycle()
     val selectedLocation by viewModel.selectedLocation.collectAsStateWithLifecycle()
     val predictions by viewModel.predictions.collectAsStateWithLifecycle()
@@ -62,8 +63,8 @@ fun MapUi(viewModel: MapViewModel, navController: NavController) {
     }
     val markerState = rememberMarkerState(
         position = LatLng(
-            locationState.value.latitude,
-            locationState.value.longitude
+            selectedLocation.latitude,
+            selectedLocation.longitude
         )
     )
     LaunchedEffect(selectedLocation) {
@@ -93,7 +94,7 @@ fun MapUi(viewModel: MapViewModel, navController: NavController) {
             IconButton(
                 onClick = { navController.popBackStack() },
                 modifier = Modifier
-                    .padding(8.dp,32.dp)
+                    .padding(8.dp, 32.dp)
                     .background(Color.White, shape = CircleShape)
                     .border(1.dp, Color.Gray, shape = CircleShape)
             ) {
@@ -164,7 +165,15 @@ fun MapUi(viewModel: MapViewModel, navController: NavController) {
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Button(
-                        onClick = { viewModel.saveLocation(selectedLocation) },
+                        onClick = {
+                            if (buttonAction) {
+                                viewModel.setDefaultLocation(selectedLocation)
+                                viewModel.updatePreference("location", MapHelper.MAP.mapType)
+
+
+                            }else
+                            viewModel.saveLocation(selectedLocation)
+                                  },
                         modifier = Modifier
                             .weight(1f)
                             .height(48.dp),
@@ -172,7 +181,10 @@ fun MapUi(viewModel: MapViewModel, navController: NavController) {
                     ) {
                         Icon(Icons.Default.Save, contentDescription = "Save City")
                         Spacer(modifier = Modifier.width(6.dp))
-                        Text(stringResource(R.string.add_to_favorites))
+                        Text(
+                            if (buttonAction) stringResource(R.string.set_as_default_location) else
+                            stringResource(R.string.add_to_favorites)
+                        )
                     }
                 }
             }

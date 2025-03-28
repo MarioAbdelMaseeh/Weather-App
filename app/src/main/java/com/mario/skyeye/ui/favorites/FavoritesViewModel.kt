@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.mario.skyeye.data.models.FavoriteLocation
 import com.mario.skyeye.data.models.Response
 import com.mario.skyeye.data.repo.Repo
+import com.mario.skyeye.enums.TempUnit
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -87,6 +88,7 @@ class FavoritesViewModel(val repo: Repo) : ViewModel(){
             fetchFavoriteLocations()
         }
     }
+
 }
 class FavoritesFactory(private val repo: Repo): ViewModelProvider.Factory{
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
