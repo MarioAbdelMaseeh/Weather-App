@@ -111,8 +111,17 @@ fun SettingsScreen(viewModel: SettingsViewModel, function: () -> Unit) {
                         Languages.ARABIC.displayName
                     ),
                     selectedOption = fromCode(selectedLanguage)?.displayName ?: Languages.ENGLISH.displayName,
-                    onOptionSelected = { viewModel.updatePreference("language", fromLanguageDisplayName(it)?.code ?: Languages.ENGLISH.code)
-                        restartActivity(context)}
+                    onOptionSelected = {
+                        if ((fromLanguageDisplayName(it)?.code
+                                ?: Languages.ENGLISH.code) != viewModel.getPreference(
+                                "language",
+                                Languages.ENGLISH.code
+                            )
+                        ){
+                            viewModel.updatePreference("language", fromLanguageDisplayName(it)?.code ?: Languages.ENGLISH.code)
+                            restartActivity(context)
+                        }
+                    }
                 )
             }
 

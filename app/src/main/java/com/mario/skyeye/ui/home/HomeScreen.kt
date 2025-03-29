@@ -74,8 +74,8 @@ fun HomeScreenUI(viewModel: HomeViewModel) {
         modifier = Modifier
             .fillMaxSize()
             .background(
-                    color = Color.White
-                )
+                color = Color.White
+            )
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
             LazyColumn(
@@ -86,7 +86,13 @@ fun HomeScreenUI(viewModel: HomeViewModel) {
                 item {
                     when (weatherData.value) {
                         is Response.Loading -> LoadingIndicator()
-                        is Response.Success -> WeatherContent(weatherData.value, viewModel, dynamicColors)
+                        is Response.Success -> WeatherContent(
+                            weatherData.value,
+                            viewModel.tempUnit,
+                            viewModel.windSpeedUnit,
+                            dynamicColors
+                        )
+
                         is Response.Failure -> ErrorText(weatherData.value as Response.Failure)
                     }
                 }
@@ -100,25 +106,48 @@ fun getWeatherBasedColors(weatherData: Response<WeatherData?>): WeatherColors {
     return when ((weatherData as? Response.Success)?.data?.currentWeatherResponse?.weather?.get(0)?.icon) {
         "01d" -> WeatherColors(Color(0xFFB3E5FC), Color(0xFF81D4FA)) // Baby blue for sunny day
         "01n" -> WeatherColors(Color(0xFF0D47A1), Color(0xFF1A237E)) // Deep blue for clear night
-        "02d", "03d", "04d" -> WeatherColors(Color(0xFFB0BEC5), Color(0xFF90A4AE)) // Soft gray for cloudy days
-        "02n", "03n", "04n" -> WeatherColors(Color(0xFF37474F), Color(0xFF263238)) // Darker gray for cloudy nights
-        "09d", "10d" -> WeatherColors(Color(0xFF78909C), Color(0xFF607D8B)) // Muted blue-gray for rainy days
-        "09n", "10n" -> WeatherColors(Color(0xFF263238), Color(0xFF1C313A)) // Dark blue-gray for rainy nights
+        "02d", "03d", "04d" -> WeatherColors(
+            Color(0xFFB0BEC5),
+            Color(0xFF90A4AE)
+        ) // Soft gray for cloudy days
+        "02n", "03n", "04n" -> WeatherColors(
+            Color(0xFF37474F),
+            Color(0xFF263238)
+        ) // Darker gray for cloudy nights
+        "09d", "10d" -> WeatherColors(
+            Color(0xFF78909C),
+            Color(0xFF607D8B)
+        ) // Muted blue-gray for rainy days
+        "09n", "10n" -> WeatherColors(
+            Color(0xFF263238),
+            Color(0xFF1C313A)
+        ) // Dark blue-gray for rainy nights
         "11d" -> WeatherColors(Color(0xFF455A64), Color(0xFF263238)) // Dark stormy tones for day
-        "11n" -> WeatherColors(Color(0xFF1B1B1B), Color(0xFF000000)) // Almost black for stormy night
+        "11n" -> WeatherColors(
+            Color(0xFF1B1B1B),
+            Color(0xFF000000)
+        ) // Almost black for stormy night
         "13d" -> WeatherColors(Color(0xFFE0F7FA), Color(0xFFB2EBF2)) // Icy blue for snowy day
-        "13n" -> WeatherColors(Color(0xFF90A4AE), Color(0xFF78909C)) // Dimmed icy blue for snowy night
+        "13n" -> WeatherColors(
+            Color(0xFF90A4AE),
+            Color(0xFF78909C)
+        ) // Dimmed icy blue for snowy night
         "50d" -> WeatherColors(Color(0xFFCFD8DC), Color(0xFFB0BEC5)) // Misty, foggy look for day
         "50n" -> WeatherColors(Color(0xFF424242), Color(0xFF212121)) // Dark misty night
         else -> WeatherColors(Color(0xFFCFD8DC), Color(0xFFB0BEC5)) // Neutral fallback for day
     }
 }
+
 fun getContrastingTextColor(bgColor: Color): Color {
     val luminance = bgColor.luminance()
     return if (luminance < 0.5) Color.White else Color.Black
 }
 
-data class WeatherColors(val light: Color, val dark: Color,  val textColor: Color = getContrastingTextColor(light))
+data class WeatherColors(
+    val light: Color,
+    val dark: Color,
+    val textColor: Color = getContrastingTextColor(light)
+)
 
 @Composable
 fun LoadingIndicator() {
@@ -130,11 +159,12 @@ fun LoadingIndicator() {
         CircularProgressIndicator()
     }
 }
+
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 private fun ForecastSection(
     value: Response<WeatherData?>,
-    viewModel: HomeViewModel,
+    tempUnit: String,
     colors: WeatherColors
 ) {
     val weatherForecastResponse =
@@ -148,64 +178,29 @@ private fun ForecastSection(
             color = colorResource(id = R.color.black),
             fontSize = 24.sp,
             fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(16.dp, 0.dp)
+            modifier = Modifier.padding(16.dp, 0.dp, 0.dp, 0.dp)
         )
         LazyRow(
             modifier = Modifier.padding(8.dp)
         ) {
             item {
                 forecastDays?.entries?.first()?.value?.forEach { forecast ->
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .defaultMinSize(100.dp)
-                            .padding(8.dp, 16.dp)
-                            .background(
-                                brush = Brush.horizontalGradient(
-                                    colors = listOf(
-                                        colors.light,
-                                        colors.dark
-                                    )
-                                ),
-                                shape = RoundedCornerShape(16.dp)
-                            )
-                            .padding(8.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        HourlyForecastItem(
-                            forecast,
-                            fromUnitType(viewModel.tempUnit)?.getTempSymbol()
-                                ?: TempUnit.METRIC.getTempSymbol(),
-                            colors.textColor
-                        )
-                    }
+
+                    HourlyForecastItem(
+                        forecast,
+                        fromUnitType(tempUnit)?.getTempSymbol()
+                            ?: TempUnit.METRIC.getTempSymbol(),
+                        colors
+                    )
                 }
                 forecastDays?.entries?.elementAt(1)
                     ?.value?.forEach { forecast ->
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .defaultMinSize(100.dp)
-                                .padding(8.dp, 16.dp)
-                                .background(
-                                    brush = Brush.horizontalGradient(
-                                        colors = listOf(
-                                            colors.light,
-                                            colors.dark
-                                        )
-                                    ),
-                                    shape = RoundedCornerShape(16.dp)
-                                )
-                                .padding(8.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            HourlyForecastItem(
-                                forecast,
-                                fromUnitType(viewModel.tempUnit)?.getTempSymbol()
-                                    ?: TempUnit.METRIC.getTempSymbol(),
-                                colors.textColor
-                            )
-                        }
+                        HourlyForecastItem(
+                            forecast,
+                            fromUnitType(tempUnit)?.getTempSymbol()
+                                ?: TempUnit.METRIC.getTempSymbol(),
+                            colors
+                        )
                     }
             }
         }
@@ -239,7 +234,7 @@ private fun ForecastSection(
             forecastDays?.entries?.forEach { (date, forecastList) ->
                 ForecastDay(
                     date, forecastList,
-                    fromUnitType(viewModel.tempUnit)?.getTempSymbol()
+                    fromUnitType(tempUnit)?.getTempSymbol()
                         ?: TempUnit.METRIC.getTempSymbol(),
                     colors.textColor
                 )
@@ -250,22 +245,32 @@ private fun ForecastSection(
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun WeatherContent(weatherData: Response<WeatherData?>, viewModel: HomeViewModel, colors: WeatherColors) {
-    val currentWeatherResponse = (weatherData as Response.Success<WeatherData?>).data?.currentWeatherResponse
+fun WeatherContent(
+    weatherData: Response<WeatherData?>,
+    tempUnit: String,
+    windSpeedUnit: String,
+    colors: WeatherColors
+) {
+    val currentWeatherResponse =
+        (weatherData as Response.Success<WeatherData?>).data?.currentWeatherResponse
 
-    Column{
+    Column {
         LocationHeader(currentWeatherResponse)
-        CurrentWeatherBox(currentWeatherResponse, fromUnitType(viewModel.tempUnit)?.getTempSymbol() ?: TempUnit.METRIC.getTempSymbol(),colors )
-        TimeBox(colors,currentWeatherResponse)
-        WeatherDetailsBox(currentWeatherResponse, viewModel, colors)
-        ForecastSection(weatherData, viewModel, colors)
+        CurrentWeatherBox(
+            currentWeatherResponse,
+            fromUnitType(tempUnit)?.getTempSymbol() ?: TempUnit.METRIC.getTempSymbol(),
+            colors
+        )
+        TimeBox(colors, currentWeatherResponse)
+        WeatherDetailsBox(currentWeatherResponse, windSpeedUnit, colors)
+        ForecastSection(weatherData, tempUnit, colors)
     }
 }
 
 @Composable
 fun LocationHeader(weather: CurrentWeatherResponse?) {
     Row(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().padding(16.dp, 8.dp, 16.dp, 0.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.Center
     ) {
@@ -279,48 +284,92 @@ fun LocationHeader(weather: CurrentWeatherResponse?) {
             color = Color.Black,
             fontSize = 24.sp,
             fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(0.dp, 8.dp, 0.dp, 0.dp)
+            modifier = Modifier.padding(8.dp, 0.dp, 0.dp, 0.dp)
         )
     }
 }
 
 @Composable
 fun ErrorText(error: Response.Failure) {
-    Text(text = "Error: ${error.error}", color = Color.Red, fontSize = 18.sp, textAlign = TextAlign.Center)
+    Text(
+        text = "Error: ${error.error}",
+        color = Color.Red,
+        fontSize = 18.sp,
+        textAlign = TextAlign.Center
+    )
 }
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun HourlyForecastItem(x0: WeatherForecast.Item0, unit: String, textColor: Color) {
-
-    Column(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+fun HourlyForecastItem(x0: WeatherForecast.Item0, unit: String, colors: WeatherColors) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .defaultMinSize(100.dp,200.dp)
+            .padding(8.dp, 8.dp)
+            .background(
+                brush = Brush.horizontalGradient(
+                    colors = listOf(
+                        colors.light,
+                        colors.dark
+                    )
+                ),
+                shape = RoundedCornerShape(50.dp)
+            )
+            .padding(8.dp),
+        contentAlignment = Alignment.Center
     ) {
-        Text(text = LanguageManager.formatNumberBasedOnLanguage(getHourFormTime(x0.dt.toLong())),
-            color = textColor,
-            fontSize = 16.sp,
-        )
-        Image(
-            painter = painterResource(
-                id = WeatherIconMapper.getWeatherIcon(
-                    x0.weather[0].icon
+
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            val myDate = Date(x0.dt * 1000L)
+            val dateFormat = SimpleDateFormat("EE", Locale.getDefault())
+            Text(
+                text = dateFormat.format(myDate),
+                color = colors.textColor,
+                fontSize = 16.sp,
+
                 )
-            ),
-            contentDescription = stringResource(R.string.weather_icon),
-            modifier = Modifier.size(30.dp)
-        )
-        Text(text = "${LanguageManager.formatNumberBasedOnLanguage(x0.main.temp.toInt().toString())}$unit",
-            color = textColor,
-            fontSize = 16.sp,
-            fontWeight = FontWeight.Bold)
+            Spacer(modifier = Modifier.size(8.dp))
+            Text(
+                text = LanguageManager.formatNumberBasedOnLanguage(getHourFormTime(x0.dt.toLong())),
+                color = colors.textColor,
+                fontSize = 16.sp,
+            )
+            Image(
+                painter = painterResource(
+                    id = WeatherIconMapper.getWeatherIcon(
+                        x0.weather[0].icon
+                    )
+                ),
+                contentDescription = stringResource(R.string.weather_icon),
+                modifier = Modifier.size(60.dp)
+            )
+            Text(
+                text = "${
+                    LanguageManager.formatNumberBasedOnLanguage(
+                        x0.main.temp.toInt().toString()
+                    )
+                }$unit",
+                color = colors.textColor,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold
+            )
+        }
     }
 }
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun ForecastDay(date: Int, forecastList: List<WeatherForecast.Item0>, unit: String, textColor: Color) {
+fun ForecastDay(
+    date: Int,
+    forecastList: List<WeatherForecast.Item0>,
+    unit: String,
+    textColor: Color
+) {
 
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -381,7 +430,11 @@ fun ForecastDay(date: Int, forecastList: List<WeatherForecast.Item0>, unit: Stri
         )
         Spacer(modifier = Modifier.size(8.dp))
         Text(
-            text = "${LanguageManager.formatNumberBasedOnLanguage(maxTemp.toString())}/${LanguageManager.formatNumberBasedOnLanguage(minTemp.toString())}$unit",
+            text = "${LanguageManager.formatNumberBasedOnLanguage(maxTemp.toString())}/${
+                LanguageManager.formatNumberBasedOnLanguage(
+                    minTemp.toString()
+                )
+            }$unit",
             color = textColor,
             fontSize = 16.sp,
             modifier = Modifier.width(80.dp),
@@ -390,6 +443,7 @@ fun ForecastDay(date: Int, forecastList: List<WeatherForecast.Item0>, unit: Stri
         Spacer(modifier = Modifier.size(8.dp))
     }
 }
+
 fun WeatherForecast.forecastDaysHelper(): Map<Int, List<WeatherForecast.Item0>> {
     val forecastMap = mutableMapOf<Int, MutableList<WeatherForecast.Item0>>()
     val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
@@ -405,7 +459,11 @@ fun WeatherForecast.forecastDaysHelper(): Map<Int, List<WeatherForecast.Item0>> 
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun WeatherDetailsBox(x0: CurrentWeatherResponse?, viewModel: HomeViewModel, colors: WeatherColors) {
+fun WeatherDetailsBox(
+    x0: CurrentWeatherResponse?,
+    windSpeedUnit: String,
+    colors: WeatherColors
+) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -430,15 +488,20 @@ fun WeatherDetailsBox(x0: CurrentWeatherResponse?, viewModel: HomeViewModel, col
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.Start
             ) {
-                SmallBox(R.drawable.humidity,
+                SmallBox(
+                    R.drawable.humidity,
                     stringResource(R.string.humidity),
                     LanguageManager.formatNumberBasedOnLanguage(x0?.main?.humidity.toString()),
-                    "%", colors.textColor)
+                    "%", colors.textColor
+                )
                 Spacer(modifier = Modifier.size(8.dp))
-                SmallBox(R.drawable.wind,
+                SmallBox(
+                    R.drawable.wind,
                     stringResource(R.string.wind_speed),
                     LanguageManager.formatNumberBasedOnLanguage(x0?.wind?.speed.toString()),
-                    fromUnitType(viewModel.windSpeedUnit)?.getWindSymbol() ?: TempUnit.METRIC.getWindSymbol(), colors.textColor)
+                    fromUnitType(windSpeedUnit)?.getWindSymbol()
+                        ?: TempUnit.METRIC.getWindSymbol(), colors.textColor
+                )
             }
             Column(
                 verticalArrangement = Arrangement.Center,
@@ -452,7 +515,8 @@ fun WeatherDetailsBox(x0: CurrentWeatherResponse?, viewModel: HomeViewModel, col
                     colors.textColor
                 )
                 Spacer(modifier = Modifier.size(8.dp))
-                SmallBox(R.drawable.eye,
+                SmallBox(
+                    R.drawable.eye,
                     stringResource(R.string.visibility),
                     LanguageManager.formatNumberBasedOnLanguage(x0?.visibility.toString()),
                     stringResource(R.string.m),
@@ -463,20 +527,34 @@ fun WeatherDetailsBox(x0: CurrentWeatherResponse?, viewModel: HomeViewModel, col
 
                 val riseTime = getHourFormTime(x0?.sys?.sunrise?.toLong() ?: 0)
                 val setTime = getHourFormTime(x0?.sys?.sunset?.toLong() ?: 0)
-                SmallBox(R.drawable.sunrise_alt,
+                SmallBox(
+                    R.drawable.sunrise_alt,
                     stringResource(R.string.sunrise),
-                    LanguageManager.formatNumberBasedOnLanguage(riseTime.toString()), "", colors.textColor)
+                    LanguageManager.formatNumberBasedOnLanguage(riseTime.toString()),
+                    "",
+                    colors.textColor
+                )
                 Spacer(modifier = Modifier.size(8.dp))
-                SmallBox(R.drawable.sunset,
+                SmallBox(
+                    R.drawable.sunset,
                     stringResource(R.string.sunset),
-                    LanguageManager.formatNumberBasedOnLanguage(setTime.toString()), "",colors.textColor)
+                    LanguageManager.formatNumberBasedOnLanguage(setTime.toString()),
+                    "",
+                    colors.textColor
+                )
             }
         }
     }
 }
 
 @Composable
-private fun SmallBox(icon: Int?, name: String?, value: String?, measuringUnit: String?, textColor: Color) {
+private fun SmallBox(
+    icon: Int?,
+    name: String?,
+    value: String?,
+    measuringUnit: String?,
+    textColor: Color
+) {
     Box {
         Row {
             Image(
@@ -505,7 +583,11 @@ private fun SmallBox(icon: Int?, name: String?, value: String?, measuringUnit: S
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 
-private fun CurrentWeatherBox(response: CurrentWeatherResponse?, unit: String, colors: WeatherColors) {
+private fun CurrentWeatherBox(
+    response: CurrentWeatherResponse?,
+    unit: String,
+    colors: WeatherColors
+) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -525,39 +607,48 @@ private fun CurrentWeatherBox(response: CurrentWeatherResponse?, unit: String, c
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
-                Column(
-                    verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Text(
-                        text = response?.weather?.get(0)?.description ?: "No Data",
-                        color = colors.textColor,
-                        fontSize = 24.sp,
-                        fontWeight = FontWeight.Bold,
-                        textAlign = TextAlign.Center
-                    )
-                    Spacer(
-                        modifier = Modifier.size(8.dp)
-                    )
-                    Text(
-                        text = "${LanguageManager.formatNumberBasedOnLanguage((response?.main?.temp?.toInt() ?: "No Data").toString())}${unit}",
-                        color = colors.textColor,
-                        fontSize = 40.sp,
-                        fontWeight = FontWeight.Bold,
-                        textAlign = TextAlign.Center
-                    )
-                    Text(
-                        text = stringResource(
-                            R.string.feels_like,
-                            LanguageManager.formatNumberBasedOnLanguage(
-                                (response?.main?.feelsLike?.toInt() ?: "No Data").toString()
-                            ),
-                            unit
+            Column(
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Spacer(
+                    modifier = Modifier.size(8.dp)
+                )
+                Text(
+                    text = response?.weather?.get(0)?.description ?: "No Data",
+                    color = colors.textColor,
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Bold,
+                    textAlign = TextAlign.Center
+                )
+                Spacer(
+                    modifier = Modifier.size(8.dp)
+                )
+                Text(
+                    text = "${LanguageManager.formatNumberBasedOnLanguage((response?.main?.temp?.toInt() ?: "No Data").toString())}${unit}",
+                    color = colors.textColor,
+                    fontSize = 48.sp,
+                    fontWeight = FontWeight.Bold,
+                    textAlign = TextAlign.Center
+                )
+                Spacer(
+                    modifier = Modifier.size(8.dp)
+                )
+                Text(
+                    text = stringResource(
+                        R.string.feels_like,
+                        LanguageManager.formatNumberBasedOnLanguage(
+                            (response?.main?.feelsLike?.toInt() ?: "No Data").toString()
                         ),
-                        color = colors.textColor,
-                        fontSize = 16.sp
-                    )
-                }
+                        unit
+                    ),
+                    color = colors.textColor,
+                    fontSize = 16.sp
+                )
+                Spacer(
+                    modifier = Modifier.size(8.dp)
+                )
+            }
             Image(
                 painter = painterResource(
                     id = WeatherIconMapper.getWeatherIcon(
@@ -570,51 +661,52 @@ private fun CurrentWeatherBox(response: CurrentWeatherResponse?, unit: String, c
         }
     }
 }
-    @Composable
-    fun TimeBox(
-        colors: WeatherColors,
-        currentWeatherResponse: CurrentWeatherResponse?
-    ) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp)
-                .background(
-                    brush = Brush.horizontalGradient(
-                        colors = listOf(
-                            colors.light,
-                            colors.dark
-                        )
-                    ),
-                    shape = RoundedCornerShape(16.dp)
-                )
-                .padding(12.dp)
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                val myDate = Date()
-                val dateFormat = SimpleDateFormat("EEEE, hh:mm a", Locale.getDefault())
-                Text(
-                    text = dateFormat.format(myDate),
-                    color = colors.textColor,
-                    fontSize = 16.sp,
 
+@Composable
+fun TimeBox(
+    colors: WeatherColors,
+    currentWeatherResponse: CurrentWeatherResponse?
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp)
+            .background(
+                brush = Brush.horizontalGradient(
+                    colors = listOf(
+                        colors.light,
+                        colors.dark
                     )
-                Spacer(modifier = Modifier.weight(1f))
-                Text(
-                    stringResource(
-                        R.string.last_updated,
-                        getRelativeTime(currentWeatherResponse?.dt ?: 0, LocalContext.current)
-                    ),
-                    color = colors.textColor,
-                    fontSize = 16.sp,
-                    modifier = Modifier.fillMaxWidth(),
-                    textAlign = TextAlign.End
+                ),
+                shape = RoundedCornerShape(16.dp)
+            )
+            .padding(12.dp)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            val myDate = Date()
+            val dateFormat = SimpleDateFormat("EEEE, hh:mm a", Locale.getDefault())
+            Text(
+                text = dateFormat.format(myDate),
+                color = colors.textColor,
+                fontSize = 16.sp,
+
                 )
-            }
+            Spacer(modifier = Modifier.weight(1f))
+            Text(
+                stringResource(
+                    R.string.last_updated,
+                    getRelativeTime(currentWeatherResponse?.dt ?: 0, LocalContext.current)
+                ),
+                color = colors.textColor,
+                fontSize = 16.sp,
+                modifier = Modifier.fillMaxWidth(),
+                textAlign = TextAlign.End
+            )
         }
     }
+}
 //@Composable
 //@RequiresApi(Build.VERSION_CODES.O)
 //fun HomeScreenUIb(viewModel: HomeViewModel) {

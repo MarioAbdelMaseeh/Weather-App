@@ -40,4 +40,7 @@ class SettingsViewModel(
             THEME -> _selectedTheme.value = value
         }
     }
+    fun getPreference(key: String, defaultValue: String): String {
+       return repo.getPreference(key, defaultValue)
+    }
 }
