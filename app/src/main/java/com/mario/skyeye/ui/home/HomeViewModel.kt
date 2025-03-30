@@ -57,7 +57,7 @@ class HomeViewModel(private val repo: Repo): ViewModel(){
     }
 
     fun fetchWeatherData(lat: Double, lon: Double) {
-        val tempUnit = repo.getPreference(Constants.TEMP_UNIT, TempUnit.METRIC.getTempSymbol())
+        val tempUnit = repo.getPreference(Constants.TEMP_UNIT, TempUnit.METRIC.unitType)
 
         viewModelScope.launch(Dispatchers.IO + exceptionHandler) {
             try {
@@ -81,13 +81,13 @@ class HomeViewModel(private val repo: Repo): ViewModel(){
     }
 
 
-    fun updateHomeScreen(): String{
-       val flag =  repo.getPreference(Constants.UPDATE,"false")
-        return flag
-    }
-    fun setUpdateHomeScreen(flag: String){
-        repo.savePreference(Constants.UPDATE,flag)
-    }
+//    fun updateHomeScreen(): String{
+//       val flag =  repo.getPreference(Constants.UPDATE,"false")
+//        return flag
+//    }
+//    fun setUpdateHomeScreen(flag: String){
+//        repo.savePreference(Constants.UPDATE,flag)
+//    }
     fun locationChangeListener(){
         viewModelScope.launch {
             repo.onChangeCurrentLocation().collect {

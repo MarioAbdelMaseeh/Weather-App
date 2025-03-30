@@ -21,7 +21,7 @@ import com.mario.skyeye.data.models.Response
 import com.mario.skyeye.ui.home.ErrorText
 import com.mario.skyeye.ui.home.LoadingIndicator
 import com.mario.skyeye.ui.home.WeatherContent
-import com.mario.skyeye.ui.home.getWeatherBasedColors
+import com.mario.skyeye.utils.getWeatherBasedColors
 
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalGlideComposeApi::class)

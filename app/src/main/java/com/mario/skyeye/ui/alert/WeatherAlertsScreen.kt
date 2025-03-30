@@ -1,5 +1,6 @@
 package com.mario.skyeye.ui.alert
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.Interaction
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -40,6 +41,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.mario.skyeye.alarm.setManualAlarm
+import com.mario.skyeye.alarm.workmanager.scheduleWeatherAlerts
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
 
@@ -49,7 +52,11 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 fun WeatherAlertsScreenUI(viewModel: WeatherAlertsViewModel, onFabClick: MutableState<() -> Unit>) {
     var showBottomSheet by remember { mutableStateOf(false)}
     var sheetState = rememberModalBottomSheetState()
-    onFabClick.value = { showBottomSheet = true }
+    val context = LocalContext.current
+    onFabClick.value = {
+        showBottomSheet = true
+
+    }
     if (showBottomSheet) {
         ModalBottomSheet(
             onDismissRequest = { showBottomSheet = false },
@@ -58,6 +65,8 @@ fun WeatherAlertsScreenUI(viewModel: WeatherAlertsViewModel, onFabClick: Mutable
         ) {
             AlarmBottomSheet { showBottomSheet = false }
         }
+//        setManualAlarm(context, System.currentTimeMillis() + 1000 * 10)
+        scheduleWeatherAlerts(lat = viewModel.lat, lon = viewModel.lon, context = context, unit = viewModel.unit, condition = "clear sky")
     }
 
 }

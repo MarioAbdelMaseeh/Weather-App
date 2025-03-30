@@ -47,12 +47,14 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.edit
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.compose.rememberNavController
+import androidx.work.WorkManager
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
+import com.mario.skyeye.alarm.workmanager.stopWeatherAlarm
 import com.mario.skyeye.enums.Languages
 import com.mario.skyeye.enums.MapHelper
 import com.mario.skyeye.navigation.BottomNavigationItem
@@ -80,6 +82,7 @@ class MainActivity : ComponentActivity() {
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        stopWeatherAlarm(this)
         sharedPreferences = getSharedPreferences(Constants.PREFS_NAME, MODE_PRIVATE)
         applyLanguage(sharedPreferences.getString(Constants.LANGUAGE, Languages.ENGLISH.code) ?: "en")
         setContent {
@@ -92,6 +95,11 @@ class MainActivity : ComponentActivity() {
             geocoder = Geocoder(this)
             MainUi()
         }
+        WorkManager.getInstance(this).getWorkInfosByTag("WeatherAlertWorker")
+            .get().forEach {
+                Log.d("WorkManager", "Worker state: ${it.state}")
+            }
+        WorkManager.getInstance(this).cancelAllWorkByTag("WeatherAlertWorker")
     }
     @RequiresApi(Build.VERSION_CODES.O)
     @Preview
@@ -232,20 +240,20 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
-
     override fun onRequestPermissionsResult(
         requestCode: Int,
-        permissions: Array<out String>,
+        permissions: Array<out String?>,
         grantResults: IntArray,
         deviceId: Int
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults, deviceId)
-        if (requestCode == 123){
+        if (requestCode == REQUEST_CODE_LOCATION){
             if (grantResults[0] == PackageManager.PERMISSION_GRANTED || grantResults[1] == PackageManager.PERMISSION_GRANTED){
                 getLocation()
             }
         }
     }
+
 
     fun checkPermission(): Boolean {
         return checkSelfPermission(android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
@@ -283,8 +291,6 @@ class MainActivity : ComponentActivity() {
                     sharedPreferences.edit{ putString(Constants.CURRENT_LOCATION, "${location.latitude},${location.longitude}") }
                     Log.i("TAG", "getLocation: ${location.latitude} ${location.longitude}")
                     fusedLocationClient.removeLocationUpdates(this)
-                }else{
-                    Toast.makeText(this@MainActivity, "Location not found", Toast.LENGTH_SHORT).show()
                 }
             }
         }
@@ -315,4 +321,5 @@ class MainActivity : ComponentActivity() {
             sharedPreferences.unregisterOnSharedPreferenceChangeListener(listener)
         }
     }
+
 }
