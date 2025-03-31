@@ -1,8 +1,6 @@
 package com.mario.skyeye.ui.alert
 
-import android.annotation.SuppressLint
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.Interaction
+import android.util.Log
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.PressInteraction
 import androidx.compose.foundation.layout.Arrangement
@@ -18,18 +16,24 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccessTime
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Timer
+import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TimePicker
+import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -41,21 +45,22 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.mario.skyeye.alarm.setManualAlarm
-import com.mario.skyeye.alarm.workmanager.scheduleWeatherAlerts
-import kotlinx.coroutines.channels.BufferOverflow
-import kotlinx.coroutines.flow.MutableSharedFlow
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.mario.skyeye.ui.settings.SettingsCategory
+import com.mario.skyeye.ui.settings.ToggleButtonGroup
+import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Locale
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WeatherAlertsScreenUI(viewModel: WeatherAlertsViewModel, onFabClick: MutableState<() -> Unit>) {
+    val selectedCondition by viewModel.selectedCondition.collectAsStateWithLifecycle()
     var showBottomSheet by remember { mutableStateOf(false)}
     var sheetState = rememberModalBottomSheetState()
-    val context = LocalContext.current
     onFabClick.value = {
         showBottomSheet = true
-
     }
     if (showBottomSheet) {
         ModalBottomSheet(
@@ -63,63 +68,68 @@ fun WeatherAlertsScreenUI(viewModel: WeatherAlertsViewModel, onFabClick: Mutable
             sheetState = sheetState
             , containerColor = Color.White
         ) {
-            AlarmBottomSheet { showBottomSheet = false }
+            AlarmBottomSheet(selectedCondition,viewModel) { showBottomSheet = false }
         }
-//        setManualAlarm(context, System.currentTimeMillis() + 1000 * 10)
-        scheduleWeatherAlerts(lat = viewModel.lat, lon = viewModel.lon, context = context, unit = viewModel.unit, condition = "clear sky")
     }
 
 }
 
-
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AlarmBottomSheet(onClose: () -> Unit) {
-
+fun AlarmBottomSheet(condition: String,viewModel: WeatherAlertsViewModel,onClose: () -> Unit) {
     val redColor = Color(0xFFE53935)
     val greenColor = Color(0xFF43A047)
+    val context = LocalContext.current
 
     // State to track the selected option
-    var selectedOption by remember { mutableStateOf("Alarm") }
     var startDurationTimeState by remember { mutableStateOf("") }
-    var endDurationTimeState by remember { mutableStateOf("") }
+    var selectedDate by remember { mutableStateOf("") }
 
+    // State for showing dialogs
+    var showStartTimePicker by remember { mutableStateOf(false) }
+    var showEndTimePicker by remember { mutableStateOf(false) }
+    var showDatePicker by remember { mutableStateOf(false) }
 
-    val startDurationSource = remember {
-        object : MutableInteractionSource {
-            override val interactions = MutableSharedFlow<Interaction>(
-                extraBufferCapacity = 16,
-                onBufferOverflow = BufferOverflow.DROP_OLDEST,
-            )
-            override suspend fun emit(interaction: Interaction) {
-                if (interaction is PressInteraction.Release) {
-                    endDurationTimeState = "14:00 AM"
-                }
-                interactions.emit(interaction)
-            }
-            override fun tryEmit(interaction: Interaction): Boolean {
-                return interactions.tryEmit(interaction)
-            }
-        }
-    }
+    // Time picker state
+    val startTimeState = rememberTimePickerState(
+        initialHour = 12,
+        initialMinute = 0,
+        is24Hour = false
+    )
 
-    val endDurationSource = remember {
-        object : MutableInteractionSource {
-            override val interactions = MutableSharedFlow<Interaction>(
-                extraBufferCapacity = 16,
-                onBufferOverflow = BufferOverflow.DROP_OLDEST,
-            )
-            override suspend fun emit(interaction: Interaction) {
-                if (interaction is PressInteraction.Release) {
-                    startDurationTimeState = "14:00 AM"
-                }
-                interactions.emit(interaction)
-            }
-            override fun tryEmit(interaction: Interaction): Boolean {
-                return interactions.tryEmit(interaction)
+    // Date picker state
+    val datePickerState = rememberDatePickerState()
+    val calendar = Calendar.getInstance()
+
+    // Interaction sources for click handling
+    val dateInteractionSource = remember { MutableInteractionSource() }
+    val startTimeInteractionSource = remember { MutableInteractionSource() }
+    val endTimeInteractionSource = remember { MutableInteractionSource() }
+
+    // Handle interactions
+    LaunchedEffect(dateInteractionSource) {
+        dateInteractionSource.interactions.collect { interaction ->
+            if (interaction is PressInteraction.Release) {
+                showDatePicker = true
             }
         }
     }
 
+    LaunchedEffect(startTimeInteractionSource) {
+        startTimeInteractionSource.interactions.collect { interaction ->
+            if (interaction is PressInteraction.Release) {
+                showStartTimePicker = true
+            }
+        }
+    }
+
+    LaunchedEffect(endTimeInteractionSource) {
+        endTimeInteractionSource.interactions.collect { interaction ->
+            if (interaction is PressInteraction.Release) {
+                showEndTimePicker = true
+            }
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -133,8 +143,27 @@ fun AlarmBottomSheet(onClose: () -> Unit) {
         )
         Spacer(modifier = Modifier.height(16.dp))
 
+        // 📅 Date Picker
+        Text(text = "Date", style = MaterialTheme.typography.bodyMedium)
+        OutlinedTextField(
+            value = selectedDate,
+            onValueChange = {},
+            readOnly = true,
+            placeholder = { Text("Select date") },
+            label = { Text("Date") },
+            leadingIcon = {
+                Icon(
+                    imageVector = Icons.Default.DateRange,
+                    contentDescription = "Select Date"
+                )
+            },
+            interactionSource = dateInteractionSource,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 8.dp)
+        )
 
-
+        Spacer(modifier = Modifier.height(16.dp))
 
         // 🕑 Start Duration
         Text(text = "Start duration", style = MaterialTheme.typography.bodyMedium)
@@ -142,79 +171,33 @@ fun AlarmBottomSheet(onClose: () -> Unit) {
             value = startDurationTimeState,
             onValueChange = {},
             readOnly = true,
-            placeholder = { Text("Start duration") },
-            label = {Text("Start duration")},
+            placeholder = { Text("Start time") },
+            label = { Text("Start time") },
             leadingIcon = {
                 Icon(
                     imageVector = Icons.Default.AccessTime,
                     contentDescription = "Start Time"
                 )
             },
-            interactionSource = startDurationSource ,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 8.dp)
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // ⏰ End Duration
-        Text(text = "End duration", style = MaterialTheme.typography.bodyMedium)
-        OutlinedTextField(
-            value = endDurationTimeState,
-            onValueChange = { },
-            placeholder = { Text("End duration") },
-            label = {Text("End duration")},
-            leadingIcon = {
-                Icon(
-                    imageVector = Icons.Default.Timer,
-                    contentDescription = "End Time"
-                )
-            },
-            readOnly = true, // Make it read-only so the click event is not consumed internally
-            interactionSource = endDurationSource,
+            interactionSource = startTimeInteractionSource,
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(top = 8.dp)
         )
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Radio Buttons
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceEvenly
-        ) {
-            Text(
-                text = "Notify me by",
-                style = MaterialTheme.typography.bodyLarge
+        SettingsCategory(title ="Alarm Condition" ) {
+            ToggleButtonGroup(
+                options = listOf(
+                    "rain",
+                    "clear sky",
+                    "none"
+                ),
+                selectedOption = condition ,
+                onOptionSelected = {
+                    viewModel.updatePreference("alarm_condition", it)
+                }
             )
-
-            Row {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.clickable { selectedOption = "Alarm" }
-                ) {
-                    RadioButton(
-                        selected = selectedOption == "Alarm",
-                        onClick = { selectedOption = "Alarm" }
-                    )
-                    Text(text = "Alarm", modifier = Modifier.padding(start = 4.dp))
-                }
-
-                Spacer(modifier = Modifier.width(16.dp))
-
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.clickable { selectedOption = "Notification" }
-                ) {
-                    RadioButton(
-                        selected = selectedOption == "Notification",
-                        onClick = { selectedOption = "Notification" }
-                    )
-                    Text(text = "Notification", modifier = Modifier.padding(start = 4.dp))
-                }
-            }
         }
 
         Spacer(modifier = Modifier.height(24.dp))
@@ -227,7 +210,10 @@ fun AlarmBottomSheet(onClose: () -> Unit) {
             Spacer(modifier = Modifier.weight(0.6f))
 
             Button(
-                onClick = { onClose()},
+                onClick = {
+                    viewModel.onSave(selectedDate, startDurationTimeState, context)
+                    onClose()
+                },
                 shape = RoundedCornerShape(8.dp),
                 colors = ButtonDefaults.buttonColors(greenColor),
                 modifier = Modifier.weight(3.2f)
@@ -257,6 +243,81 @@ fun AlarmBottomSheet(onClose: () -> Unit) {
             }
 
             Spacer(modifier = Modifier.weight(0.6f))
+
+        }
+    }
+
+    // Date Picker Dialog
+    if (showDatePicker) {
+        DatePickerDialog(
+            onDismissRequest = { showDatePicker = false },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        datePickerState.selectedDateMillis?.let { millis ->
+                            calendar.timeInMillis = millis
+                            selectedDate = SimpleDateFormat("MMM dd, yyyy", Locale.getDefault())
+                                .format(calendar.time)
+                        }
+                        showDatePicker = false
+                    }
+                ) {
+                    Text("OK")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDatePicker = false }) {
+                    Text("Cancel")
+                }
+            }
+        ) {
+            DatePicker(state = datePickerState)
+        }
+    }
+
+    // Start Time Picker Dialog
+    if (showStartTimePicker) {
+        androidx.compose.material3.TimePickerDialog(
+            onDismissRequest = { showStartTimePicker = false },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        val hour = startTimeState.hour
+                        val minute = startTimeState.minute
+                        val amPm = if (hour < 12) "AM" else "PM"
+                        val displayHour = when {
+                            hour > 12 -> hour - 12
+                            hour == 0 -> 12
+                            else -> hour
+                        }
+                        startDurationTimeState =
+                            "$displayHour:${minute.toString().padStart(2, '0')} $amPm"
+                        showStartTimePicker = false
+                    }
+                ) {
+                    Text("OK")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showStartTimePicker = false }) {
+                    Text("Cancel")
+                }
+            },
+            title = { Text("Select Start Time") }
+        ) {
+            TimePicker(state = startTimeState)
         }
     }
 }
+fun calculateTriggerTime(date: String, time: String): Long {
+    return try {
+        val dateFormat = SimpleDateFormat("MMM dd, yyyy hh:mm a", Locale.getDefault())
+        val dateTimeString = "$date $time"
+        dateFormat.parse(dateTimeString)?.time ?: 0L
+    } catch (e: Exception) {
+        Log.e("AlarmBottomSheet", "Error parsing date/time", e)
+        0L
+    }
+}
+
+
