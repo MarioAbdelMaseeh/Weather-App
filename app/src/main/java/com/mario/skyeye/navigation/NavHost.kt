@@ -61,7 +61,8 @@ fun SetupNavHost(
             showNavBar.value = true
             HomeScreenUI(viewModel(
                 factory = HomeFactory(RepoImpl.getInstance(RemoteDataSourceImpl(RetrofitHelper.service),
-                    LocalDataSourceImpl(AppDataBase.getInstance(navHostController.context).weatherDao()),
+                    LocalDataSourceImpl(AppDataBase.getInstance(navHostController.context).weatherDao(),
+                        AppDataBase.getInstance(navHostController.context).alarmDao()),
                     AppPreference(LocalContext.current)))
             ))
         }
@@ -71,7 +72,8 @@ fun SetupNavHost(
             icon.value = Icons.Default.Map
             FavoritesScreenUI(viewModel(
                 factory = FavoritesFactory(RepoImpl.getInstance(RemoteDataSourceImpl(RetrofitHelper.service),
-                    LocalDataSourceImpl(AppDataBase.getInstance(navHostController.context).weatherDao()),
+                    LocalDataSourceImpl(AppDataBase.getInstance(navHostController.context).weatherDao(),
+                        AppDataBase.getInstance(navHostController.context).alarmDao()),
                     AppPreference(LocalContext.current)))
             ), snackbarHostState,
                 navToDetails = { location ->
@@ -91,7 +93,8 @@ fun SetupNavHost(
             WeatherAlertsScreenUI(
                 viewModel(
                     factory = WeatherAlertsFactory(RepoImpl.getInstance(RemoteDataSourceImpl(RetrofitHelper.service),
-                        LocalDataSourceImpl(AppDataBase.getInstance(navHostController.context).weatherDao()),
+                        LocalDataSourceImpl(AppDataBase.getInstance(navHostController.context).weatherDao(),
+                            AppDataBase.getInstance(navHostController.context).alarmDao()),
                         AppPreference(LocalContext.current)),
                         )
                 ),onFabClick
@@ -101,7 +104,10 @@ fun SetupNavHost(
             showMap.value = false
             showNavBar.value = true
             SettingsScreen(SettingsViewModel(
-                RepoImpl.getInstance(RemoteDataSourceImpl(RetrofitHelper.service),LocalDataSourceImpl(AppDataBase.getInstance(LocalContext.current).weatherDao()), AppPreference(LocalContext.current))
+                RepoImpl.getInstance(RemoteDataSourceImpl(RetrofitHelper.service),LocalDataSourceImpl(
+                    AppDataBase.getInstance(LocalContext.current).weatherDao(),
+                    AppDataBase.getInstance(LocalContext.current).alarmDao()),
+                    AppPreference(LocalContext.current))
             )){
                 buttonAction = true
                 navHostController.navigate(MapScreen)
@@ -112,7 +118,8 @@ fun SetupNavHost(
             showNavBar.value = false
             MapUi(viewModel(
                 factory = MapFactory(RepoImpl.getInstance(RemoteDataSourceImpl(RetrofitHelper.service),
-                    LocalDataSourceImpl(AppDataBase.getInstance(LocalContext.current).weatherDao()),
+                    LocalDataSourceImpl(AppDataBase.getInstance(LocalContext.current).weatherDao(),
+                        AppDataBase.getInstance(LocalContext.current).alarmDao()),
                     AppPreference(LocalContext.current)),
                     PlacesClientManager.getClient(LocalContext.current))
             ),navHostController,
@@ -129,7 +136,8 @@ fun SetupNavHost(
                         RepoImpl.getInstance(
                             RemoteDataSourceImpl(RetrofitHelper.service),
                             LocalDataSourceImpl(
-                                AppDataBase.getInstance(LocalContext.current).weatherDao()
+                                AppDataBase.getInstance(LocalContext.current).weatherDao(),
+                                AppDataBase.getInstance(LocalContext.current).alarmDao()
                             ),
                             AppPreference(LocalContext.current)
                         )

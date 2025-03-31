@@ -1,5 +1,6 @@
 package com.mario.skyeye.data.repo
 
+import com.mario.skyeye.data.models.Alarm
 import com.mario.skyeye.data.models.CurrentWeatherResponse
 import com.mario.skyeye.data.models.FavoriteLocation
 import com.mario.skyeye.data.models.GeoCoderResponse
@@ -19,4 +20,10 @@ interface Repo {
     fun savePreference(key: String, value: String)
     fun getPreference(key: String, defaultValue: String): String
     fun onChangeCurrentLocation(): Flow<String>
+
+    suspend fun insertAlarm(alarm: Alarm): Long
+    suspend fun updateAlarm(alarm: Alarm)
+    suspend fun deleteAlarm(alarm: Alarm)
+    suspend fun getAllAlarms(): Flow<List<Alarm>>
+
 }

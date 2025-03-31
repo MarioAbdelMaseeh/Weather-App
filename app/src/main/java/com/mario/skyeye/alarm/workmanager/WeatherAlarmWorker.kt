@@ -4,12 +4,14 @@ import android.Manifest
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
+import android.content.ContentResolver
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Color
 import android.media.AudioAttributes
 import android.media.RingtoneManager
+import android.net.Uri
 import android.os.Build
 import android.util.Log
 import androidx.core.app.NotificationCompat
@@ -33,6 +35,7 @@ import com.mario.skyeye.data.repo.RepoImpl
 import com.mario.skyeye.data.sharedprefrence.AppPreference
 import kotlinx.coroutines.flow.firstOrNull
 import java.util.concurrent.TimeUnit
+import androidx.core.net.toUri
 
 class WeatherAlertWorker(
     context: Context,
@@ -41,7 +44,7 @@ class WeatherAlertWorker(
     private val repo by lazy {
         RepoImpl.getInstance(
             RemoteDataSourceImpl(RetrofitHelper.service),
-            LocalDataSourceImpl(AppDataBase.getInstance(context).weatherDao()),
+            LocalDataSourceImpl(AppDataBase.getInstance(context).weatherDao(),AppDataBase.getInstance(context).alarmDao()),
             AppPreference(context))}
 
     override suspend fun doWork(): Result {
@@ -89,7 +92,9 @@ class WeatherAlertWorker(
         )
 
         // 4. Use default alarm sound (more reliable than custom sounds)
-        val soundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM)
+//        val soundUri =
+//
+//            RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM)
 
         // 5. Build notification with sound
         val notification = NotificationCompat.Builder(applicationContext, "weather_alerts")
@@ -99,7 +104,7 @@ class WeatherAlertWorker(
             .setPriority(NotificationCompat.PRIORITY_MAX) // MAX is critical for sound
             .setCategory(NotificationCompat.CATEGORY_ALARM)
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
-            .setSound(soundUri)
+            //.setSound(soundUri)
             .setVibrate(longArrayOf(1000, 1000, 1000, 1000))
             .setLights(Color.RED, 1000, 1000)
             .setContentIntent(pendingIntent)
@@ -113,7 +118,14 @@ class WeatherAlertWorker(
 
     private fun createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val soundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM)
+            val soundUri = try {
+                // Try custom sound first
+                "${ContentResolver.SCHEME_ANDROID_RESOURCE}://${applicationContext.packageName}/${R.raw.rain}".toUri()
+            } catch (e: Exception) {
+                // Fallback to system default alarm sound
+                RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM)
+            }
+                //RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM)
 
             val channel = NotificationChannel(
                 "weather_alerts", // Same ID used in Builder

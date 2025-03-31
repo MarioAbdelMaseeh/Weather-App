@@ -1,5 +1,6 @@
 package com.mario.skyeye.data.repo
 import com.mario.skyeye.data.local.LocalDataSource
+import com.mario.skyeye.data.models.Alarm
 import com.mario.skyeye.data.models.CurrentWeatherResponse
 import com.mario.skyeye.data.models.FavoriteLocation
 import com.mario.skyeye.data.models.GeoCoderResponse
@@ -78,4 +79,22 @@ class RepoImpl private constructor(
     override fun onChangeCurrentLocation(): Flow<String> {
         return sharedPreferences.onChangeCurrentLocation()
     }
+
+    override suspend fun insertAlarm(alarm: Alarm): Long {
+        return localDataSource.insertAlarm(alarm)
+    }
+
+    override suspend fun updateAlarm(alarm: Alarm) {
+        localDataSource.updateAlarm(alarm)
+    }
+
+    override suspend fun deleteAlarm(alarm: Alarm) {
+        localDataSource.deleteAlarm(alarm)
+    }
+
+
+    override suspend fun getAllAlarms(): Flow<List<Alarm>> {
+        return localDataSource.getAllAlarms()
+    }
+
 }

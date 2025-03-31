@@ -4,11 +4,15 @@ import android.content.Context
 import android.widget.Toast
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewModelScope
+import com.mario.skyeye.alarm.cancelAlarm
 import com.mario.skyeye.alarm.setManualAlarm
+import com.mario.skyeye.data.models.Alarm
 import com.mario.skyeye.data.repo.Repo
 import com.mario.skyeye.utils.Constants
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 
 
 class WeatherAlertsViewModel(private val repo: Repo) : ViewModel(){
@@ -21,18 +25,58 @@ class WeatherAlertsViewModel(private val repo: Repo) : ViewModel(){
     private val _selectedCondition = MutableStateFlow(repo.getPreference(Constants.ALARM_CONDITION, "none"))
     val selectedCondition = _selectedCondition.asStateFlow()
 
-    fun onSave(selectedDate: String, startDurationTimeState: String, context: Context) {
-        if (selectedDate.isEmpty() || startDurationTimeState.isEmpty()) {
-            Toast.makeText(context, "Please select date and time", Toast.LENGTH_SHORT).show()
-            return
-        }
+    private val _alarms = MutableStateFlow<List<Alarm>>(emptyList())
+    val alarms = _alarms.asStateFlow()
 
-        val triggerTime = calculateTriggerTime(selectedDate, startDurationTimeState)
-        if (triggerTime <= 0) {
-            Toast.makeText(context, "Invalid date/time selection", Toast.LENGTH_SHORT).show()
-            return
+    fun setAlarm(selectedDate: String, startDurationTimeState: String, context: Context) {
+        when {
+            selectedDate.isEmpty() || startDurationTimeState.isEmpty() -> {
+                Toast.makeText(context, "Please select date and time", Toast.LENGTH_SHORT).show()
+            }
+            calculateTriggerTime(selectedDate, startDurationTimeState) <= 0 -> {
+                Toast.makeText(context, "Invalid date/time selection", Toast.LENGTH_SHORT).show()
+            }
+            else -> {
+                viewModelScope.launch {
+                    val alarm = Alarm(
+                        triggerTime = calculateTriggerTime(selectedDate, startDurationTimeState),
+                        isEnabled = true,
+                    )
+                    val alarmId = repo.insertAlarm(alarm).toInt()
+                    if(!setManualAlarm(context, calculateTriggerTime(selectedDate, startDurationTimeState), alarmId)){
+                        Toast.makeText(context, "Failed to set alarm", Toast.LENGTH_SHORT).show()
+                        repo.deleteAlarm(alarm)
+                    }
+                    repo.getAllAlarms().collect {
+                        _alarms.value = it
+                    }
+                }
+            }
         }
-        setManualAlarm(context, triggerTime)
+    }
+    fun toggleAlarm(context: Context, alarm: Alarm) {
+        viewModelScope.launch {
+            if (alarm.isEnabled) {
+                setManualAlarm(context, alarm.triggerTime, alarm.createdAt.toInt())
+            } else {
+                cancelAlarm(context, alarm)
+            }
+            repo.updateAlarm(alarm)
+            repo.getAllAlarms().collect {
+                _alarms.value = it
+            }
+            Toast.makeText(context, "Alarm ${if (alarm.isEnabled) "enabled" else "disabled"}", Toast.LENGTH_SHORT).show()
+        }
+    }
+    fun deleteAlarm(context: Context, alarm: Alarm) {
+        viewModelScope.launch {
+            cancelAlarm(context, alarm)
+            repo.deleteAlarm(alarm)
+            repo.getAllAlarms().collect {
+                _alarms.value = it
+            }
+            Toast.makeText(context, "Alarm canceled", Toast.LENGTH_SHORT).show()
+        }
     }
 
     fun updatePreference(key: String, value: String) {

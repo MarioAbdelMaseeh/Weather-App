@@ -5,15 +5,17 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
+import com.mario.skyeye.data.models.Alarm
 import com.mario.skyeye.data.models.CurrentWeatherResponse
 import com.mario.skyeye.data.models.FavoriteLocation
 import com.mario.skyeye.data.models.WeatherConverters
 import kotlin.jvm.java
 
-@Database(entities = [FavoriteLocation::class], version = 1)
+@Database(entities = [FavoriteLocation::class, Alarm::class], version = 2)
 @TypeConverters(WeatherConverters::class)
 abstract class AppDataBase : RoomDatabase(){
     abstract fun weatherDao(): WeatherDao
+    abstract fun alarmDao(): AlarmDao
     companion object{
         @Volatile
         private var INSTANCE : AppDataBase? = null
