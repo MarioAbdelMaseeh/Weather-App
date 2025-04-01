@@ -19,4 +19,9 @@ interface AlarmDao {
     suspend fun deleteAlarm(alarm: Alarm)
     @Query("SELECT * FROM alarms")
     fun getAllAlarms(): Flow<List<Alarm>>
+    @Query("Delete FROM alarms WHERE label = :label")
+    suspend fun deleteAlarmByLabel(label: String)
+    @Query("SELECT * FROM alarms WHERE createdAt = :createdAt")
+    fun getAlarmByCreatedAt(createdAt: Long): Flow<Alarm?>
+
 }

@@ -37,6 +37,14 @@ class LocalDataSourceImpl (private val weatherDao: WeatherDao, val alarmDao: Ala
         return alarmDao.getAllAlarms()
     }
 
+    override suspend fun deleteAlarmByLabel(label: String) {
+        alarmDao.deleteAlarmByLabel(label)
+    }
+
+    override suspend fun getAlarmByCreatedAt(createdAt: Long): Flow<Alarm?> {
+        return alarmDao.getAlarmByCreatedAt(createdAt)
+    }
+
 
 }
 

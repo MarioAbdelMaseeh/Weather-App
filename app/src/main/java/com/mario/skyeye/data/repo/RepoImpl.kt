@@ -92,9 +92,16 @@ class RepoImpl private constructor(
         localDataSource.deleteAlarm(alarm)
     }
 
-
     override suspend fun getAllAlarms(): Flow<List<Alarm>> {
         return localDataSource.getAllAlarms()
+    }
+
+    override suspend fun deleteAlarmByLabel(label: String) {
+        localDataSource.deleteAlarmByLabel(label)
+    }
+
+    override suspend fun getAlarmByCreatedAt(createdAt: Long): Flow<Alarm?> {
+        return localDataSource.getAlarmByCreatedAt(createdAt)
     }
 
 }

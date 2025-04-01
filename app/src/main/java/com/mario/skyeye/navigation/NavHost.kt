@@ -27,18 +27,18 @@ import com.mario.skyeye.navigation.ScreensRoutes.HomeScreen
 import com.mario.skyeye.navigation.ScreensRoutes.MapScreen
 import com.mario.skyeye.navigation.ScreensRoutes.SettingsScreen
 import com.mario.skyeye.navigation.ScreensRoutes.WeatherAlertsScreen
-import com.mario.skyeye.ui.alert.WeatherAlertsFactory
-import com.mario.skyeye.ui.alert.WeatherAlertsScreenUI
-import com.mario.skyeye.ui.details.DetailsFactory
-import com.mario.skyeye.ui.details.DetailsScreenUI
-import com.mario.skyeye.ui.favorites.FavoritesFactory
-import com.mario.skyeye.ui.favorites.FavoritesScreenUI
-import com.mario.skyeye.ui.home.HomeFactory
-import com.mario.skyeye.ui.home.HomeScreenUI
-import com.mario.skyeye.ui.map.MapFactory
-import com.mario.skyeye.ui.map.MapUi
-import com.mario.skyeye.ui.settings.SettingsScreen
-import com.mario.skyeye.ui.settings.SettingsViewModel
+import com.mario.skyeye.feature.alert.viewmodel.WeatherAlertsFactory
+import com.mario.skyeye.feature.alert.view.WeatherAlertsScreenUI
+import com.mario.skyeye.feature.details.viewmodel.DetailsFactory
+import com.mario.skyeye.feature.details.view.DetailsScreenUI
+import com.mario.skyeye.feature.favorites.viewmodel.FavoritesFactory
+import com.mario.skyeye.feature.favorites.view.FavoritesScreenUI
+import com.mario.skyeye.feature.home.viewmodel.HomeFactory
+import com.mario.skyeye.feature.home.view.HomeScreenUI
+import com.mario.skyeye.feature.map.viewmodel.MapFactory
+import com.mario.skyeye.feature.map.view.MapUi
+import com.mario.skyeye.feature.settings.view.SettingsScreen
+import com.mario.skyeye.feature.settings.viewmodel.SettingsViewModel
 import com.mario.skyeye.utils.PlacesClientManager
 
 @RequiresApi(Build.VERSION_CODES.O)

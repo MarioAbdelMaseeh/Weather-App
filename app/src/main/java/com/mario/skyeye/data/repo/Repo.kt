@@ -25,5 +25,6 @@ interface Repo {
     suspend fun updateAlarm(alarm: Alarm)
     suspend fun deleteAlarm(alarm: Alarm)
     suspend fun getAllAlarms(): Flow<List<Alarm>>
-
+    suspend fun deleteAlarmByLabel(label: String)
+    suspend fun getAlarmByCreatedAt(createdAt: Long): Flow<Alarm?>
 }

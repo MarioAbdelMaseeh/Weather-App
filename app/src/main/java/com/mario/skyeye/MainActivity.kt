@@ -54,7 +54,6 @@ import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
-import com.mario.skyeye.alarm.workmanager.WeatherAlertWorker
 import com.mario.skyeye.enums.Languages
 import com.mario.skyeye.enums.MapHelper
 import com.mario.skyeye.navigation.BottomNavigationItem
@@ -82,7 +81,6 @@ class MainActivity : ComponentActivity() {
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        WeatherAlertWorker.cancel(this)
         sharedPreferences = getSharedPreferences(Constants.PREFS_NAME, MODE_PRIVATE)
         applyLanguage(sharedPreferences.getString(Constants.LANGUAGE, Languages.ENGLISH.code) ?: "en")
         setContent {
@@ -95,11 +93,6 @@ class MainActivity : ComponentActivity() {
             geocoder = Geocoder(this)
             MainUi()
         }
-        WorkManager.getInstance(this).getWorkInfosByTag("WeatherAlertWorker")
-            .get().forEach {
-                Log.d("WorkManager", "Worker state: ${it.state}")
-            }
-        WorkManager.getInstance(this).cancelAllWorkByTag("WeatherAlertWorker")
     }
     @RequiresApi(Build.VERSION_CODES.O)
     @Preview
