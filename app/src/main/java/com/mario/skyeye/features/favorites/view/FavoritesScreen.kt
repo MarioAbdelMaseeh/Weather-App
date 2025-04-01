@@ -127,7 +127,8 @@ fun FavoritesScreenUI(
                                     key = { index -> favoriteLocations?.get(index)?.cityName ?: "" }) { index ->
                                     val location = favoriteLocations?.get(index)
                                     location?.let {
-                                        SwipeToDeleteContainer(item = it, onDelete = { viewModel.deleteLocation(it) }, snackbarHostState = snackbarHostState, onRestore = { viewModel.fetchFavoriteLocations()} ) { location ->
+                                        SwipeToDeleteContainer(item = it, onDelete = { viewModel.deleteLocation(it) }, snackbarHostState = snackbarHostState,
+                                            onRestore = { } ) { location ->
                                             FavoriteLocationItem(viewModel = viewModel,location = location, navToDetails = navToDetails)
                                         }
                                     }

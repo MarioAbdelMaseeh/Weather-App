@@ -30,6 +30,12 @@ class FavoritesViewModel(val repo: Repo) : ViewModel(){
             }
         }
     }
+    fun insertLocation(location: FavoriteLocation) {
+        viewModelScope.launch {
+            repo.insertLocation(location)
+            fetchFavoriteLocations()
+        }
+    }
 //    fun updateFavoriteLocations() {
 //        viewModelScope.launch {
 //            repo.getAllLocations()
