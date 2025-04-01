@@ -57,7 +57,7 @@ class AlarmDaoTest {
         assertThat(alarms?.get(0)?.triggerTime, `is`(10))
     }
     @Test
-    fun updateAlarm() = runTest {
+    fun updateAlarm_updatesAlarm_returnsUnit() = runTest {
         val sentAlarm = Alarm(
             label = "Morning Alarm",
             triggerTime = 10,
@@ -76,7 +76,7 @@ class AlarmDaoTest {
         assertThat(receivedAlarm?.triggerTime, `is`(10))
     }
     @Test
-    fun deleteAlarm() = runTest {
+    fun deleteAlarm_deletesAlarm_returnsUnit() = runTest {
         val alarm = Alarm(
             label = "Morning Alarm",
             triggerTime = 10,
@@ -95,7 +95,7 @@ class AlarmDaoTest {
         assertThat(alarms?.size, `is`(0))
     }
     @Test
-    fun getAllAlarms() = runTest {
+    fun getAllAlarms_returnsAlarms() = runTest {
         val alarm1 = Alarm(
             label = "Morning Alarm",
             triggerTime = 10,
@@ -127,7 +127,7 @@ class AlarmDaoTest {
     }
 
     @Test
-    fun deleteAlarmByLabel() = runTest {
+    fun deleteAlarmByLabel_deletesAlarm_returnsUnit() = runTest {
         val alarm1 = Alarm(
             label = "Morning Alarm",
             triggerTime = 10,

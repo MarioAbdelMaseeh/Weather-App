@@ -10,7 +10,7 @@ import com.mario.skyeye.data.sharedprefrence.AppPreference
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
-class RepoImpl private constructor(
+class RepoImpl (
     private val remoteDataSource: RemoteDataSource,
     private val localDataSource: LocalDataSource,
     private val sharedPreferences: AppPreference

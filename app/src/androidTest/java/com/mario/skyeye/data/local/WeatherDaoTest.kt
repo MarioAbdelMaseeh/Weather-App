@@ -49,7 +49,7 @@ class WeatherDaoTest {
         db.close()
     }
     @Test
-    fun getAllFavoriteLocations() = runTest {
+    fun getAllFavoriteLocations_returnsLocations() = runTest {
         dao.insert(favoriteLocation)
         val locations = dao.getAllFavoriteLocations().firstOrNull()
         assertNotNull(locations)
@@ -57,7 +57,7 @@ class WeatherDaoTest {
         assertThat(locations?.get(0)?.cityName,`is`("London"))
     }
     @Test
-    fun getFavoriteLocationByCityName() = runTest {
+    fun getFavoriteLocationByCityName_returnsLocation() = runTest {
         dao.insert(favoriteLocation)
         val location = dao.getFavoriteLocationByCityName("London").firstOrNull()
         assertNotNull(location)
@@ -66,7 +66,7 @@ class WeatherDaoTest {
         assertThat(location?.longitude, `is`(-0.1278))
     }
     @Test
-    fun deleteFavoriteLocation() = runTest {
+    fun deleteFavoriteLocation_deletesLocation_returnsRowCount() = runTest {
         dao.insert(favoriteLocation)
         dao.delete(favoriteLocation)
         val locations = dao.getAllFavoriteLocations().firstOrNull()
