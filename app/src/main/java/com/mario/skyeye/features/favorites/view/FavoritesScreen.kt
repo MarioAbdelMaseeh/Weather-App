@@ -14,8 +14,10 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -27,6 +29,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
@@ -51,6 +54,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.airbnb.lottie.compose.LottieAnimation
+import com.airbnb.lottie.compose.LottieCompositionSpec
+import com.airbnb.lottie.compose.rememberLottieComposition
 import com.google.gson.Gson
 import com.mario.skyeye.R
 import com.mario.skyeye.data.models.FavoriteLocation
@@ -76,46 +82,33 @@ fun FavoritesScreenUI(
             Column(
                 modifier = Modifier.fillMaxWidth(),
             ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Center
-                ){
-                    Icon(
-                        Icons.Default.LocationCity,
-                        contentDescription = stringResource(R.string.location),
-                        modifier = Modifier.size(40.dp)
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp)
+                ) {
+                    Text(
+                            text = stringResource(R.string.saved_locations),
+                            style = MaterialTheme.typography.headlineMedium
                     )
                     Text(
-                        text = stringResource(R.string.saved_locations),
-                        modifier = Modifier.padding(16.dp, 8.dp),
-                        fontSize = 32.sp,
-                        fontWeight = FontWeight.Bold
+                        text = stringResource(R.string.manage_your_saved_locations),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                     )
+
                 }
-                HorizontalDivider(
-                    thickness = 1.dp,
-                    color = Color.Gray,
-                    modifier = Modifier.padding(16.dp, 0.dp)
-                )
                 when (favoriteLocations) {
                     is Response.Loading -> {
-                        Column(
-                            modifier = Modifier.fillMaxSize(),
-                            verticalArrangement = Arrangement.Center,
-                            horizontalAlignment = Alignment.CenterHorizontally,
-
-                            ) {
-                            CircularProgressIndicator()
-                        }
+                        AnimationLoading()
                     }
                     is Response.Failure -> {
-                        Text(text = "Error: ${(favoriteLocations as Response.Failure).error.toString()}", modifier = Modifier.padding(16.dp))
+                        Text(text = "Error: ${(favoriteLocations as Response.Failure).error}", modifier = Modifier.padding(16.dp))
                     }
                     is Response.Success -> {
                         val locations = (favoriteLocations as Response.Success).data
                         if (locations?.isEmpty() == true) {
-                            Text(text = stringResource(R.string.no_saved_locations), modifier = Modifier.padding(16.dp))
+                            AnimationLoading()
                         }else{
                             val favoriteLocations = (favoriteLocations as Response.Success).data
                             LazyColumn(
@@ -281,6 +274,18 @@ fun DeleteLocationBackground(
             )
         }
     }
+}
+@Composable
+private fun AnimationLoading() {
+    LottieAnimation(
+        composition = rememberLottieComposition(
+            LottieCompositionSpec.RawRes(
+                R.raw.location_lottie
+            )
+        ).value,
+        speed = 1f,
+        isPlaying = true,
+    )
 }
 
 

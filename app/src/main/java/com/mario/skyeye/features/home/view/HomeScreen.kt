@@ -20,6 +20,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -37,12 +38,16 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.airbnb.lottie.compose.LottieAnimation
+import com.airbnb.lottie.compose.LottieCompositionSpec
+import com.airbnb.lottie.compose.rememberLottieComposition
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.mario.skyeye.R
 import com.mario.skyeye.data.models.CurrentWeatherResponse
 import com.mario.skyeye.data.models.Response
 import com.mario.skyeye.data.models.WeatherData
 import com.mario.skyeye.data.models.WeatherForecast
+import com.mario.skyeye.data.models.forecastDaysHelper
 import com.mario.skyeye.enums.TempUnit
 import com.mario.skyeye.enums.TempUnit.Companion.fromUnitType
 import com.mario.skyeye.features.home.viewmodel.HomeViewModel
@@ -87,7 +92,7 @@ fun HomeScreenUI(viewModel: HomeViewModel) {
             ) {
                 item {
                     when (weatherData.value) {
-                        is Response.Loading -> LoadingIndicator()
+                        is Response.Loading -> AnimationLoading()
                         is Response.Success -> WeatherContent(
                             weatherData.value,
                             viewModel.tempUnit,
@@ -115,7 +120,7 @@ fun LoadingIndicator() {
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-private fun ForecastSection(
+fun ForecastSection(
     value: Response<WeatherData?>,
     tempUnit: String,
     colors: WeatherColors
@@ -223,21 +228,18 @@ fun WeatherContent(
 @Composable
 fun LocationHeader(weather: CurrentWeatherResponse?) {
     Row(
-        modifier = Modifier.fillMaxWidth().padding(16.dp, 8.dp, 16.dp, 0.dp),
+        modifier = Modifier.fillMaxWidth().padding(16.dp, 16.dp, 16.dp, 0.dp),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.Center
     ) {
         Image(
             painter = painterResource(id = R.drawable.marker),
             contentDescription = stringResource(R.string.location_icon),
             modifier = Modifier.size(20.dp)
         )
+        Spacer(modifier = Modifier.size(8.dp))
         Text(
             text = weather?.name.orEmpty(),
-            color = Color.Black,
-            fontSize = 24.sp,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(8.dp, 0.dp, 0.dp, 0.dp)
+            style = MaterialTheme.typography.headlineMedium
         )
     }
 }
@@ -396,20 +398,6 @@ fun ForecastDay(
         Spacer(modifier = Modifier.size(8.dp))
     }
 }
-
-fun WeatherForecast.forecastDaysHelper(): Map<Int, List<WeatherForecast.Item0>> {
-    val forecastMap = mutableMapOf<Int, MutableList<WeatherForecast.Item0>>()
-    val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-    for (item in list) {
-        val dateKey = dateFormat.format(Date(item.dt * 1000L)).replace("-", "").toInt()
-        if (forecastMap[dateKey] == null) {
-            forecastMap[dateKey] = mutableListOf()
-        }
-        forecastMap[dateKey]?.add(item)
-    }
-    return forecastMap.mapValues { it.value.take(8) }
-}
-
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun WeatherDetailsBox(
@@ -501,7 +489,7 @@ fun WeatherDetailsBox(
 }
 
 @Composable
-private fun SmallBox(
+fun SmallBox(
     icon: Int?,
     name: String?,
     value: String?,
@@ -536,7 +524,7 @@ private fun SmallBox(
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 
-private fun CurrentWeatherBox(
+fun CurrentWeatherBox(
     response: CurrentWeatherResponse?,
     unit: String,
     colors: WeatherColors
@@ -660,3 +648,16 @@ fun TimeBox(
         }
     }
 }
+@Composable
+private fun AnimationLoading() {
+    LottieAnimation(
+        composition = rememberLottieComposition(
+            LottieCompositionSpec.RawRes(
+                R.raw.weather2_lottie
+            )
+        ).value,
+        speed = 2f,
+        isPlaying = true,
+    )
+}
+

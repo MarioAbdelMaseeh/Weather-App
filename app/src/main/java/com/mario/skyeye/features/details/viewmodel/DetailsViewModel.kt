@@ -31,7 +31,7 @@ class DetailsViewModel(private val repo: Repo): ViewModel(){
     }
 
     fun fetchWeatherData(lat: Double, lon: Double,cityName: String) {
-        val tempUnit = repo.getPreference(Constants.TEMP_UNIT, TempUnit.METRIC.getTempSymbol())
+        val tempUnit = repo.getPreference(Constants.TEMP_UNIT, TempUnit.METRIC.unitType)
 
         viewModelScope.launch(Dispatchers.IO + exceptionHandler) {
             try {

@@ -10,10 +10,12 @@ import com.mario.skyeye.alarmmanager.cancelAlarm
 import com.mario.skyeye.alarmmanager.setManualAlarm
 import com.mario.skyeye.workmanager.WeatherAlertWorker
 import com.mario.skyeye.data.models.Alarm
+import com.mario.skyeye.data.models.Response
 import com.mario.skyeye.data.repo.Repo
 import com.mario.skyeye.utils.Constants
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Locale
@@ -27,7 +29,7 @@ class WeatherAlertsViewModel(private val repo: Repo) : ViewModel(){
     val unit : String
         get() = repo.getPreference(Constants.TEMP_UNIT, "metric")
 
-    private val _alarms = MutableStateFlow<List<Alarm>>(emptyList())
+    private val _alarms = MutableStateFlow< Response<List<Alarm>>>(Response.Loading)
     val alarms = _alarms.asStateFlow()
 
     private val isRainEnabled = MutableStateFlow(repo.getPreference(Constants.ALARM_RAIN, "false").toBoolean())
@@ -37,9 +39,16 @@ class WeatherAlertsViewModel(private val repo: Repo) : ViewModel(){
     val isClearSkyEnabledState = isClearSkyEnabled.asStateFlow()
 
     init {
+        getAlarms()
+    }
+
+    private fun getAlarms() {
         viewModelScope.launch {
-            repo.getAllAlarms().collect {
-                _alarms.value = it
+            repo.getAllAlarms().catch {
+                _alarms.value = Response.Failure(it.message.toString())
+            }
+                .collect {
+                _alarms.value = Response.Success(it)
             }
         }
     }
@@ -63,10 +72,8 @@ class WeatherAlertsViewModel(private val repo: Repo) : ViewModel(){
                         Toast.makeText(context, "Failed to set alarm", Toast.LENGTH_SHORT).show()
                         repo.deleteAlarm(alarm)
                     }
-                    repo.getAllAlarms().collect {
-                        _alarms.value = it
-                    }
                 }
+                getAlarms()
             }
         }
     }
@@ -87,21 +94,16 @@ class WeatherAlertsViewModel(private val repo: Repo) : ViewModel(){
                 }
             }
             repo.updateAlarm(alarm)
-            repo.getAllAlarms().collect {
-                _alarms.value = it
-            }
-            Toast.makeText(context, "Alarm ${if (alarm.isEnabled) "enabled" else "disabled"}", Toast.LENGTH_SHORT).show()
         }
+        getAlarms()
     }
     fun deleteAlarm(context: Context, alarm: Alarm) {
         viewModelScope.launch {
             cancelAlarm(context, alarm)
             repo.deleteAlarm(alarm)
-            repo.getAllAlarms().collect {
-                _alarms.value = it
-            }
             Toast.makeText(context, "Alarm canceled", Toast.LENGTH_SHORT).show()
         }
+        getAlarms()
     }
     fun updateIsRainEnabled(isEnabled: Boolean) {
         isRainEnabled.value = isEnabled
@@ -119,14 +121,15 @@ class WeatherAlertsViewModel(private val repo: Repo) : ViewModel(){
                 triggerTime = System.currentTimeMillis(),
                 isEnabled = true,
                 label = "Periodic Alarm for $condition",
-                repeatInterval = 1
+                repeatInterval = 1,
+                createdAt = condition.length.toLong()
             )
-            repo.insertAlarm(alarm)
-            schedulePeriodicWeatherAlert(context, condition)
-            repo.getAllAlarms().collect {
-                _alarms.value = it
+            val id = repo.insertAlarm(alarm).toInt()
+            if (id > 0 ){
+                schedulePeriodicWeatherAlert(context, condition)
             }
         }
+        getAlarms()
     }
 
     private fun schedulePeriodicWeatherAlert(context: Context, condition: String) {
@@ -154,11 +157,9 @@ class WeatherAlertsViewModel(private val repo: Repo) : ViewModel(){
         viewModelScope.launch {
 
             repo.deleteAlarmByLabel("Periodic Alarm for $condition")
-            repo.getAllAlarms().collect {
-                _alarms.value = it
-            }
             cancelPeriodicWeatherAlert(context, condition)
         }
+        getAlarms()
     }
 
     private fun cancelPeriodicWeatherAlert(context: Context, condition: String) {

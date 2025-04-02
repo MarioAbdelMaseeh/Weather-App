@@ -55,8 +55,11 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.airbnb.lottie.compose.LottieAnimation
+import com.airbnb.lottie.compose.rememberLottieComposition
 import com.mario.skyeye.R
 import com.mario.skyeye.data.models.Alarm
+import com.mario.skyeye.data.models.Response
 import com.mario.skyeye.features.alert.viewmodel.WeatherAlertsViewModel
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -78,7 +81,23 @@ fun WeatherAlertsScreenUI(viewModel: WeatherAlertsViewModel, onFabClick: Mutable
         modifier = Modifier.fillMaxWidth()
     ) {
         Header(title = stringResource(R.string.weather_alerts), subtitle = stringResource(R.string.manage_your_weather_notifications))
-        AlarmListScreen(viewModel, alarms, LocalContext.current)
+        when (alarms) {
+            is Response.Loading -> {
+                AnimationLoading()
+            }
+            is Response.Failure -> {
+                Text(text = (alarms as Response.Failure).error)
+            }
+
+            is Response.Success -> {
+                if ((alarms as Response.Success<List<Alarm>>).data.isEmpty()) {
+                    AnimationLoading()
+                }else{
+                    AlarmListScreen(viewModel, (alarms as Response.Success<List<Alarm>>).data, LocalContext.current)
+
+                }
+            }
+        }
     }
 
     if (showBottomSheet) {
@@ -93,6 +112,21 @@ fun WeatherAlertsScreenUI(viewModel: WeatherAlertsViewModel, onFabClick: Mutable
     }
 
 }
+
+@Composable
+private fun AnimationLoading() {
+    LottieAnimation(
+        composition = rememberLottieComposition(
+            com.airbnb.lottie.compose.LottieCompositionSpec.RawRes(
+                R.raw.alert_lottie
+            )
+        ).value,
+        speed = 1f,
+        isPlaying = true,
+        iterations = Int.MAX_VALUE
+    )
+}
+
 @Composable
 fun Header(title: String, subtitle: String) {
     Column(
@@ -191,8 +225,6 @@ fun AlarmBottomSheet(isRainEnabled: Boolean, isClearSkyEnabled: Boolean, viewMod
     var showDatePicker by remember { mutableStateOf(false) }
     var localRainEnabled by remember { mutableStateOf(isRainEnabled) }
     var localClearSkyEnabled by remember { mutableStateOf(isClearSkyEnabled) }
-//    var isRainAlertEnabled by remember {  }
-//    var isClearSkyAlertEnabled by remember { mutableStateOf(false) }
 
 
     // Time picker state
@@ -240,7 +272,6 @@ fun AlarmBottomSheet(isRainEnabled: Boolean, isClearSkyEnabled: Boolean, viewMod
         Spacer(modifier = Modifier.height(8.dp))
 
         // 📅 Date Picker
-//        Text(text = "Date", style = MaterialTheme.typography.bodyMedium)
         OutlinedTextField(
             value = selectedDate,
             onValueChange = {},
@@ -262,7 +293,6 @@ fun AlarmBottomSheet(isRainEnabled: Boolean, isClearSkyEnabled: Boolean, viewMod
         Spacer(modifier = Modifier.height(8.dp))
 
         // 🕑 Start Duration
-//        Text(text = "Start duration", style = MaterialTheme.typography.bodyMedium)
         OutlinedTextField(
             value = startDurationTimeState,
             onValueChange = {},

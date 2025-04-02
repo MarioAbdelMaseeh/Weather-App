@@ -143,7 +143,8 @@ fun SetupNavHost(
                         )
                     )
                 ),
-                location = detailsScreen.favoriteLocation
+                location = detailsScreen.favoriteLocation,
+                onBackPressed = { navHostController.popBackStack() }
             )
         }
     }

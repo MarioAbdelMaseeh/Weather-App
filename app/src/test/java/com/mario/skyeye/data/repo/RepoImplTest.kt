@@ -2,12 +2,16 @@ package com.mario.skyeye.data.repo
 
 import com.mario.skyeye.data.local.LocalDataSource
 import com.mario.skyeye.data.models.Alarm
+import com.mario.skyeye.data.models.CurrentWeatherResponse
 import com.mario.skyeye.data.models.FavoriteLocation
+import com.mario.skyeye.data.models.WeatherForecast
 import com.mario.skyeye.data.remote.RemoteDataSource
 import com.mario.skyeye.data.sharedprefrence.AppPreference
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.flowOf
 import org.junit.Before
 import kotlinx.coroutines.test.runTest
 import org.hamcrest.CoreMatchers.`is`
@@ -21,6 +25,8 @@ class RepoImplTest {
     private lateinit var  remoteDataSourceImpl: RemoteDataSource
     private lateinit var localDataSourceImpl: LocalDataSource
     private lateinit var appPreference: AppPreference
+    private lateinit var currentWeatherResponse: CurrentWeatherResponse
+    private lateinit var forecast: WeatherForecast
 
     @Before
     fun setup() = runTest {
@@ -28,12 +34,40 @@ class RepoImplTest {
         remoteDataSourceImpl = mockk()
         appPreference = mockk()
         repoImpl = RepoImpl(remoteDataSourceImpl, localDataSourceImpl, appPreference)
+        currentWeatherResponse = mockk(relaxed = true)
+        forecast = mockk(relaxed = true)
     }
     @Test
     fun getAllFavoriteLocations_returnsLocations() = runTest {
-        coEvery { localDataSourceImpl.getAllLocations() } returns mockk(relaxed = true)
-        val locations = repoImpl.getAllLocations()
+        coEvery { localDataSourceImpl.getAllLocations() } returns flowOf(listOf(
+            FavoriteLocation(
+                cityName = "London",
+                latitude = 51.5074,
+                longitude = -0.1278,
+                currentWeatherResponse = currentWeatherResponse,
+                forecast
+            ),
+            FavoriteLocation(
+                cityName = "Paris",
+                latitude = 48.8566,
+                longitude = 2.3522,
+                currentWeatherResponse = currentWeatherResponse,
+                forecast
+            ),
+            FavoriteLocation(
+                cityName = "Rome",
+                latitude = 41.9028,
+                longitude = 12.4964,
+                currentWeatherResponse = currentWeatherResponse,
+                forecast
+            )
+        ))
+        val locations = repoImpl.getAllLocations().firstOrNull()
         assertNotNull(locations)
+        assertThat(locations.size, `is`(3))
+        assertThat(locations[0]?.cityName, `is`("London"))
+        assertThat(locations[1]?.cityName, `is`("Paris"))
+        assertThat(locations[2]?.cityName, `is`("Rome"))
         coVerify { localDataSourceImpl.getAllLocations() }
     }
 

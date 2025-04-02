@@ -22,6 +22,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -62,15 +63,29 @@ fun SettingsScreen(viewModel: SettingsViewModel, function: () -> Unit) {
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
     ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
         ) {
-            IconButton(onClick = { /* Handle back navigation */ }) {
-                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back))
-            }
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(stringResource(R.string.settings), fontWeight = FontWeight.Bold, fontSize = 24.sp)
+            Text(
+                text = stringResource(R.string.settings),
+                style = MaterialTheme.typography.headlineMedium
+            )
+            Text(
+                text = stringResource(R.string.manage_your_preferences),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+            )
+
         }
+//        Row(
+//            verticalAlignment = Alignment.CenterVertically,
+//        ) {
+//            IconButton(onClick = { /* Handle back navigation */ }) {
+//                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back))
+//            }
+//        }
         Column(
             modifier = Modifier
                 .fillMaxWidth()
