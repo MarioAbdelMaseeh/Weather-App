@@ -1,7 +1,6 @@
 package com.mario.skyeye
 
 import android.app.Application
-import androidx.compose.ui.platform.LocalContext
 import com.google.android.libraries.places.api.Places
 
 

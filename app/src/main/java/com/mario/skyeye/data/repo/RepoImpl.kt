@@ -1,5 +1,6 @@
 package com.mario.skyeye.data.repo
 import com.mario.skyeye.data.local.LocalDataSource
+import com.mario.skyeye.data.models.Alarm
 import com.mario.skyeye.data.models.CurrentWeatherResponse
 import com.mario.skyeye.data.models.FavoriteLocation
 import com.mario.skyeye.data.models.GeoCoderResponse
@@ -7,8 +8,9 @@ import com.mario.skyeye.data.models.WeatherForecast
 import com.mario.skyeye.data.remote.RemoteDataSource
 import com.mario.skyeye.data.sharedprefrence.AppPreference
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 
-class RepoImpl private constructor(
+class RepoImpl (
     private val remoteDataSource: RemoteDataSource,
     private val localDataSource: LocalDataSource,
     private val sharedPreferences: AppPreference
@@ -27,25 +29,16 @@ class RepoImpl private constructor(
         }
     }
 
-    override suspend fun getCurrentWeather(isOnline: Boolean, lat: Double, lon: Double, units: String): Flow<CurrentWeatherResponse?>? {
-        return if (isOnline) {
-            remoteDataSource.getCurrentWeather(lat,lon, units)
-        } else {
-            remoteDataSource.getCurrentWeather(lat,lon, units)
-        }
+    override suspend fun getCurrentWeather(lat: Double, lon: Double, units: String): Flow<CurrentWeatherResponse?>? {
+        return remoteDataSource.getCurrentWeather(lat,lon, units)
     }
 
     override suspend fun getWeatherForecast(
-        isOnline: Boolean,
         lat: Double,
         lon: Double,
         units: String
     ): Flow<WeatherForecast?>? {
-        return if (isOnline) {
-            remoteDataSource.getWeatherForecast(lat,lon, units)
-        } else {
-            remoteDataSource.getWeatherForecast(lat,lon, units)
-        }
+        return remoteDataSource.getWeatherForecast(lat,lon, units)
     }
 
     override suspend fun getCityName(
@@ -71,6 +64,10 @@ class RepoImpl private constructor(
         return localDataSource.insertLocation(favoriteLocation)
     }
 
+    override suspend fun getFavoriteLocationByCityName(cityName: String): Flow<FavoriteLocation?> {
+        return localDataSource.getFavoriteLocationByCityName(cityName)
+    }
+
     override fun savePreference(key: String, value: String) {
         sharedPreferences.savePreference(key, value)
     }
@@ -82,4 +79,33 @@ class RepoImpl private constructor(
     override fun onChangeCurrentLocation(): Flow<String> {
         return sharedPreferences.onChangeCurrentLocation()
     }
+
+    override suspend fun insertAlarm(alarm: Alarm): Long {
+        return localDataSource.insertAlarm(alarm)
+    }
+
+    override suspend fun updateAlarm(alarm: Alarm) {
+        localDataSource.updateAlarm(alarm)
+    }
+
+    override suspend fun deleteAlarm(alarm: Alarm) {
+        localDataSource.deleteAlarm(alarm)
+    }
+
+    override suspend fun getAllAlarms(): Flow<List<Alarm>> {
+        return localDataSource.getAllAlarms()
+    }
+
+    override suspend fun deleteAlarmByLabel(label: String) {
+        localDataSource.deleteAlarmByLabel(label)
+    }
+
+    override suspend fun getAlarmByCreatedAt(createdAt: Long): Flow<Alarm?> {
+        return localDataSource.getAlarmByCreatedAt(createdAt)
+    }
+
+    override suspend fun deleteAlarmByCreatedAt(createdAt: Long) {
+        localDataSource.deleteAlarmByCreatedAt(createdAt)
+    }
+
 }
