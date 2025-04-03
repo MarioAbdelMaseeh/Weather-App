@@ -38,35 +38,40 @@ class DetailsViewModel(private val repo: Repo): ViewModel(){
                 val currentWeatherDeferred = async { repo.getCurrentWeather( lat, lon, tempUnit) }
                 val forecastDeferred = async { repo.getWeatherForecast(lat, lon, tempUnit) }
 
-                val currentWeatherFlow = currentWeatherDeferred.await()
-                val forecastFlow = forecastDeferred.await()
+                var currentWeather = currentWeatherDeferred.await()?.firstOrNull()
+                var weatherForecast = forecastDeferred.await()?.firstOrNull()
 
-                var currentWeather: CurrentWeatherResponse? = null
-                var weatherForecast: WeatherForecast? = null
-
-                currentWeatherFlow?.catch { e ->
-                    _weatherDataState.value = Response.Failure(e.message.toString())
-                }?.collect { response ->
-                    currentWeather = response
-                }
-
-                forecastFlow?.catch { e ->
-                    _weatherDataState.value = Response.Failure(e.message.toString())
-                }?.collect { response ->
-                    weatherForecast = response
-                }
 
                 if (currentWeather != null && weatherForecast != null) {
                     _weatherDataState.value = Response.Success(WeatherData(currentWeather, weatherForecast))
                     updateLocation(FavoriteLocation(cityName, lat, lon,
-                        currentWeather!!, weatherForecast!!
+                        currentWeather, weatherForecast
                     ))
 
                 } else {
-                    _weatherDataState.value = Response.Failure("No Data")
+                    fetchWeatherDataLocal(cityName)
                 }
             } catch (e: Exception) {
-                _weatherDataState.value = Response.Failure(e.message.toString())
+                fetchWeatherDataLocal(cityName)
+            }
+        }
+    }
+    private fun fetchWeatherDataLocal(cityName: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            repo.getFavoriteLocationByCityName(cityName).catch {
+                _weatherDataState.value = Response.Failure(it.message.toString())
+            }.collect {
+                if (it != null) {
+                    _weatherDataState.value =
+                        Response.Success(
+                            WeatherData(
+                                it.currentWeatherResponse,
+                                it.forecastResponse
+                            )
+                        )
+                } else {
+                    _weatherDataState.value = Response.Failure("No data")
+                }
             }
         }
     }

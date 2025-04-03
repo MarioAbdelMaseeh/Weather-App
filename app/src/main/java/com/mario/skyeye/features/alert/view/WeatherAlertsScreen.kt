@@ -1,6 +1,9 @@
 package com.mario.skyeye.features.alert.view
 
 import android.content.Context
+import android.content.Intent
+import android.net.Uri
+import android.provider.Settings
 import android.util.Log
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.PressInteraction
@@ -21,6 +24,7 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -61,6 +65,7 @@ import com.mario.skyeye.R
 import com.mario.skyeye.data.models.Alarm
 import com.mario.skyeye.data.models.Response
 import com.mario.skyeye.features.alert.viewmodel.WeatherAlertsViewModel
+import com.mario.skyeye.utils.PermissionUtils
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
@@ -211,11 +216,16 @@ fun AlarmItem(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AlarmBottomSheet(isRainEnabled: Boolean, isClearSkyEnabled: Boolean, viewModel: WeatherAlertsViewModel, onClose: () -> Unit) {
+fun AlarmBottomSheet
+            (isRainEnabled: Boolean,
+             isClearSkyEnabled: Boolean,
+             viewModel: WeatherAlertsViewModel,
+             onClose: () -> Unit
+)
+{
     val redColor = Color(0xFFE53935)
     val greenColor = Color(0xFF43A047)
     val context = LocalContext.current
-    Log.i("AlarmBottomSheet", "AlarmBottomSheet: $isRainEnabled $isClearSkyEnabled")
     // State to track the selected option
     var startDurationTimeState by remember { mutableStateOf("") }
     var selectedDate by remember { mutableStateOf("") }
@@ -225,6 +235,8 @@ fun AlarmBottomSheet(isRainEnabled: Boolean, isClearSkyEnabled: Boolean, viewMod
     var showDatePicker by remember { mutableStateOf(false) }
     var localRainEnabled by remember { mutableStateOf(isRainEnabled) }
     var localClearSkyEnabled by remember { mutableStateOf(isClearSkyEnabled) }
+    var showPermissionDialog by remember { mutableStateOf(false) }
+    var permissionMessage by remember { mutableStateOf("") }
 
 
     // Time picker state
@@ -257,6 +269,22 @@ fun AlarmBottomSheet(isRainEnabled: Boolean, isClearSkyEnabled: Boolean, viewMod
                 showStartTimePicker = true
             }
         }
+    }
+    fun checkPermissionsAndSetAlarm() {
+        if (!PermissionUtils.hasNotificationPermission(context)) {
+            permissionMessage = "Notification permission is required for weather alerts"
+            showPermissionDialog = true
+            return
+        }
+
+        if (!PermissionUtils.hasExactAlarmPermission(context)) {
+            permissionMessage = "Exact alarm permission is required for timely weather alerts"
+            showPermissionDialog = true
+            return
+        }
+
+        viewModel.setAlarm(selectedDate, startDurationTimeState, context)
+        onClose()
     }
 
     Column(
@@ -369,8 +397,7 @@ fun AlarmBottomSheet(isRainEnabled: Boolean, isClearSkyEnabled: Boolean, viewMod
 
             Button(
                 onClick = {
-                    viewModel.setAlarm(selectedDate, startDurationTimeState, context)
-                    onClose()
+                    checkPermissionsAndSetAlarm()
                 },
                 shape = RoundedCornerShape(8.dp),
                 colors = ButtonDefaults.buttonColors(greenColor),
@@ -465,6 +492,32 @@ fun AlarmBottomSheet(isRainEnabled: Boolean, isClearSkyEnabled: Boolean, viewMod
         ) {
             TimePicker(state = startTimeState)
         }
+    }
+    if (showPermissionDialog) {
+        AlertDialog(
+            onDismissRequest = { showPermissionDialog = false },
+            title = { Text("Permission Required") },
+            text = { Text(permissionMessage) },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showPermissionDialog = false
+                        // Open app settings to allow user to grant permissions
+                        val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                            data = Uri.fromParts("package", context.packageName, null)
+                        }
+                        context.startActivity(intent)
+                    }
+                ) {
+                    Text("Open Settings")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showPermissionDialog = false }) {
+                    Text("Cancel")
+                }
+            }
+        )
     }
 }
 

@@ -16,21 +16,26 @@ import com.mario.skyeye.MainActivity
 import com.mario.skyeye.R
 import com.mario.skyeye.data.local.AppDataBase
 import com.mario.skyeye.data.local.LocalDataSourceImpl
+import com.mario.skyeye.data.models.Alarm
+import com.mario.skyeye.data.models.CurrentWeatherResponse
 import com.mario.skyeye.data.remote.RemoteDataSourceImpl
 import com.mario.skyeye.data.remote.RetrofitHelper
 import com.mario.skyeye.data.repo.RepoImpl
 import com.mario.skyeye.data.sharedprefrence.AppPreference
 import com.mario.skyeye.utils.getWeatherNotification
+import com.mario.skyeye.utils.isInternetAvailable
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlin.properties.Delegates
 
 class AlarmService : Service() {
     private var mediaPlayer: MediaPlayer? = null
     private var isRunning = false
     private lateinit var repo: RepoImpl
+    var alarmId by Delegates.notNull<Int>()
 
 
     override fun onCreate() {
@@ -57,7 +62,7 @@ class AlarmService : Service() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         when (intent?.action) {
             ACTION_STOP_ALARM -> {
-                stopAlarm()
+                stopAlarm(alarmId)
                 return START_NOT_STICKY
             }
             ACTION_START_ALARM -> {
@@ -66,15 +71,37 @@ class AlarmService : Service() {
                         val lat = intent.getDoubleExtra("LATITUDE", 0.0)
                         val lon = intent.getDoubleExtra("LONGITUDE", 0.0)
                         val unit = intent.getStringExtra("UNIT") ?: "metric"
-                        val weather = repo.getCurrentWeather(lat, lon, unit)?.firstOrNull()
-                        Log.d("AlarmService", "Weather fetched: ${weather?.name}")
+                        alarmId = intent.getIntExtra("alarmId", 0)
+                        var weather: CurrentWeatherResponse? = null
+                        if (isInternetAvailable(this@AlarmService)){
+                            weather = repo.getCurrentWeather(lat, lon, unit)?.firstOrNull()
+                        }
+                        Log.i("AlarmService", "Weather fetched: ${weather?.name}")
                         withContext(Dispatchers.Main) {
                             startAlarm(weather?.weather?.get(0)?.icon?.getWeatherNotification() ?: "01d".getWeatherNotification())
                         }
                     }
-
                 }
                 return START_STICKY
+            }
+            ACTION_SNOOZE_ALARM -> {
+                stopAlarm(alarmId)
+                setManualAlarm(this, System.currentTimeMillis() + 5 * 60 * 1000, alarmId,
+                    intent.getDoubleExtra("LATITUDE", 0.0),
+                    intent.getDoubleExtra("LONGITUDE", 0.0)
+                )
+                CoroutineScope(Dispatchers.IO).launch {
+                    repo.insertAlarm(
+                        Alarm(
+                            triggerTime = System.currentTimeMillis() + 5 * 60 * 1000,
+                            isEnabled = true,
+                            createdAt = alarmId.toInt()
+                        )
+                    )
+                    Log.d("AlarmService", "Inserting snoozed alarm with createdAt: $alarmId")
+                }
+
+                return START_NOT_STICKY
             }
             else -> {
                 // Default case for legacy starts
@@ -98,7 +125,7 @@ class AlarmService : Service() {
         }
     }
 
-    private fun stopAlarm() {
+    private fun stopAlarm(alarmId: Int) {
         try {
             mediaPlayer?.let { player ->
                 if (player.isPlaying) {
@@ -108,6 +135,10 @@ class AlarmService : Service() {
             }
             mediaPlayer = null
             isRunning = false
+            CoroutineScope(Dispatchers.IO).launch {
+                Log.d("AlarmService", "Deleting alarm with createdAt: $alarmId")
+                repo.deleteAlarmByCreatedAt(alarmId.toLong())
+            }
             stopForeground(true)
             stopSelf()
             Log.d("AlarmService", "Alarm stopped successfully")
@@ -142,6 +173,11 @@ class AlarmService : Service() {
                 R.drawable.base_sun,
                 "Stop Alarm",
                 createStopIntent()
+            )
+            .addAction(
+                R.drawable.base_sun,
+                "Snooze",
+                createSnoozeIntent()
             )
             .build()
 
@@ -180,8 +216,20 @@ class AlarmService : Service() {
         )
     }
 
+    private fun createSnoozeIntent(): PendingIntent{
+        val intent = Intent(this, AlarmService::class.java).apply {
+            action = ACTION_SNOOZE_ALARM
+        }
+        return PendingIntent.getService(
+            this,
+            0,
+            intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+    }
+
     override fun onDestroy() {
-        stopAlarm()
+//        stopAlarm(alarmId)
         super.onDestroy()
     }
 
@@ -190,26 +238,11 @@ class AlarmService : Service() {
     companion object {
         const val ACTION_START_ALARM = "START_ALARM"
         const val ACTION_STOP_ALARM = "STOP_ALARM"
+        const val ACTION_SNOOZE_ALARM = "SNOOZE_ALARM"
         private const val NOTIFICATION_ID = 1002
         private const val CHANNEL_ID = "weather_alert_channel"
 
-        fun start(context: Context) {
-            val intent = Intent(context, AlarmService::class.java).apply {
-                action = ACTION_START_ALARM
-            }
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                context.startForegroundService(intent)
-            } else {
-                context.startService(intent)
-            }
-        }
 
-        fun stop(context: Context) {
-            val intent = Intent(context, AlarmService::class.java).apply {
-                action = ACTION_STOP_ALARM
-            }
-            context.startService(intent)
-        }
     }
 }
 

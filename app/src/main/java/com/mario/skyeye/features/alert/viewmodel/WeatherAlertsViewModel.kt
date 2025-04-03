@@ -122,7 +122,7 @@ class WeatherAlertsViewModel(private val repo: Repo) : ViewModel(){
                 isEnabled = true,
                 label = "Periodic Alarm for $condition",
                 repeatInterval = 1,
-                createdAt = condition.length.toLong()
+                createdAt = condition.length.toInt()
             )
             val id = repo.insertAlarm(alarm).toInt()
             if (id > 0 ){

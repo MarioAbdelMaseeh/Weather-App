@@ -39,7 +39,11 @@ import com.mario.skyeye.features.map.viewmodel.MapFactory
 import com.mario.skyeye.features.map.view.MapUi
 import com.mario.skyeye.features.settings.view.SettingsScreen
 import com.mario.skyeye.features.settings.viewmodel.SettingsViewModel
+import com.mario.skyeye.utils.NetworkMonitor
 import com.mario.skyeye.utils.PlacesClientManager
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -49,7 +53,8 @@ fun SetupNavHost(
     snackbarHostState: SnackbarHostState,
     showNavBar: MutableState<Boolean>,
     icon: MutableState<ImageVector>,
-    onFabClick: MutableState<() -> Unit>
+    onFabClick: MutableState<() -> Unit>,
+    networkMonitor: NetworkMonitor
 ){
     var buttonAction = false
     NavHost(
@@ -70,20 +75,33 @@ fun SetupNavHost(
             showMap.value = true
             showNavBar.value = true
             icon.value = Icons.Default.Map
-            FavoritesScreenUI(viewModel(
-                factory = FavoritesFactory(RepoImpl.getInstance(RemoteDataSourceImpl(RetrofitHelper.service),
-                    LocalDataSourceImpl(AppDataBase.getInstance(navHostController.context).weatherDao(),
-                        AppDataBase.getInstance(navHostController.context).alarmDao()),
-                    AppPreference(LocalContext.current)))
-            ), snackbarHostState,
+            FavoritesScreenUI(
+                viewModel(
+                    factory = FavoritesFactory(
+                        RepoImpl.getInstance(
+                            RemoteDataSourceImpl(RetrofitHelper.service),
+                            LocalDataSourceImpl(
+                                AppDataBase.getInstance(navHostController.context).weatherDao(),
+                                AppDataBase.getInstance(navHostController.context).alarmDao()
+                            ),
+                            AppPreference(LocalContext.current)
+                        )
+                    )
+                ), snackbarHostState,
                 navToDetails = { location ->
                     buttonAction = true
                     navHostController.navigate(DetailsScreen(location))
                 }
             )
             onFabClick.value = {
-                buttonAction = false
-                navHostController.navigate(MapScreen)
+                if (networkMonitor.isConnected.value) {
+                    buttonAction = false
+                    navHostController.navigate(MapScreen)
+                } else {
+                    CoroutineScope(Dispatchers.Main).launch {
+                        snackbarHostState.showSnackbar("No internet connection")
+                    }
+                }
             }
         }
         composable<WeatherAlertsScreen> {
@@ -108,9 +126,18 @@ fun SetupNavHost(
                     AppDataBase.getInstance(LocalContext.current).weatherDao(),
                     AppDataBase.getInstance(LocalContext.current).alarmDao()),
                     AppPreference(LocalContext.current))
-            )){
-                buttonAction = true
-                navHostController.navigate(MapScreen)
+            ),{
+                navHostController.navigate(HomeScreen)
+            }){
+                if (networkMonitor.isConnected.value){
+                    buttonAction = true
+                    navHostController.navigate(MapScreen)
+                }else{
+                    CoroutineScope(Dispatchers.Main).launch {
+                        snackbarHostState.showSnackbar("No internet connection")
+                    }
+                }
+
             }
         }
         composable<MapScreen> {

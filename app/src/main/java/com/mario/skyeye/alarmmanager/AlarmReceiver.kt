@@ -17,6 +17,7 @@ class AlarmReceiver : BroadcastReceiver() {
             serviceIntent.putExtra("LATITUDE", it.getDoubleExtra("latitude", 0.0))
             serviceIntent.putExtra("LONGITUDE", it.getDoubleExtra("longitude", 0.0))
             serviceIntent.putExtra("UNIT", it.getStringExtra("unit"))
+            serviceIntent.putExtra("alarmId", it.getIntExtra("alarmId", 0))
         }
         ContextCompat.startForegroundService(context!!, serviceIntent)
     }

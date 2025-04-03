@@ -16,5 +16,6 @@ interface LocalDataSource {
     suspend fun getAllAlarms(): Flow<List<Alarm>>
     suspend fun deleteAlarmByLabel(label: String)
     suspend fun getAlarmByCreatedAt(createdAt: Long): Flow<Alarm?>
+    suspend fun deleteAlarmByCreatedAt(createdAt: Long)
 
 }

@@ -13,7 +13,7 @@ data class Alarm(
     val isEnabled: Boolean = true,
     val repeatInterval: Long = 0, // Repeat interval in hours (zero for one-time alarms)
     @PrimaryKey
-    val createdAt: Long = System.currentTimeMillis()
+    val createdAt: Int = System.currentTimeMillis().toInt()
 ) {
     fun getFormattedDateTime(): String {
         return SimpleDateFormat("MMM dd, yyyy hh:mm a", Locale.getDefault()).format(Date(triggerTime))

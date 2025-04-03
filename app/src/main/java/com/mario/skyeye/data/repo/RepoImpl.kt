@@ -104,4 +104,8 @@ class RepoImpl (
         return localDataSource.getAlarmByCreatedAt(createdAt)
     }
 
+    override suspend fun deleteAlarmByCreatedAt(createdAt: Long) {
+        localDataSource.deleteAlarmByCreatedAt(createdAt)
+    }
+
 }

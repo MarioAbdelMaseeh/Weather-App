@@ -25,7 +25,12 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.State
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -47,16 +52,27 @@ import com.mario.skyeye.enums.TempUnit.Companion.fromSymbol
 import com.mario.skyeye.enums.TempUnit.Companion.fromUnitType
 import com.mario.skyeye.enums.TempUnit.Companion.fromWindUnitType
 import com.mario.skyeye.features.settings.viewmodel.SettingsViewModel
+import com.mario.skyeye.utils.NetworkMonitor
+import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SettingsScreen(viewModel: SettingsViewModel, function: () -> Unit) {
+fun SettingsScreen(viewModel: SettingsViewModel,onBack: () -> Unit, function: () -> Unit ) {
     val selectedWindSpeed by viewModel.selectedWindSpeed.collectAsStateWithLifecycle()
     val selectedLanguage by viewModel.selectedLanguage.collectAsStateWithLifecycle()
     val selectedLocation by viewModel.selectedLocation.collectAsStateWithLifecycle()
     val selectedTheme by viewModel.selectedTheme.collectAsStateWithLifecycle()
     val selectedTemp by viewModel.selectedTemp.collectAsStateWithLifecycle()
     val context = LocalContext.current
+    val isConnected by rememberNetworkState()
+
+    LaunchedEffect(isConnected) {
+        if (!isConnected) {
+            // Delay slightly to let user see what happened
+            delay(1000)
+            onBack() // Navigate back to home
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -124,7 +140,8 @@ fun SettingsScreen(viewModel: SettingsViewModel, function: () -> Unit) {
                 ToggleButtonGroup(
                     options = listOf(
                         Languages.ENGLISH.displayName,
-                        Languages.ARABIC.displayName
+                        Languages.ARABIC.displayName,
+                        Languages.DEFAULT.displayName
                     ),
                     selectedOption = fromCode(selectedLanguage)?.displayName ?: Languages.ENGLISH.displayName,
                     onOptionSelected = {
@@ -215,4 +232,16 @@ fun restartActivity(context: Context) {
     intent?.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK)
     context.startActivity(intent)
     (context as? Activity)?.finish()
+}
+@Composable
+fun rememberNetworkState(): State<Boolean> {
+    val context = LocalContext.current
+    val networkMonitor = remember { NetworkMonitor(context) }
+
+    DisposableEffect(Unit) {
+        networkMonitor.startMonitoring()
+        onDispose { networkMonitor.stopMonitoring() }
+    }
+
+    return networkMonitor.isConnected.collectAsState()
 }

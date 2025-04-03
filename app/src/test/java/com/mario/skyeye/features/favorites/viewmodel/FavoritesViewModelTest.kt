@@ -147,25 +147,74 @@ class FavoritesViewModelTest {
 
     @Test
     fun `deleteLocation should call repo and refresh locations`() = runTest {
+        val testLocations = listOf(
+            FavoriteLocation(
+                cityName = "Berlin",
+                latitude = 52.5200,
+                longitude = 13.4050,
+                currentWeatherResponse = currentWeatherResponse,
+                forecastResponse = forecastResponse
+            ),
+            FavoriteLocation(cityName = "Amsterdam",
+                latitude = 52.3702,
+                longitude = 4.8952,
+                currentWeatherResponse = currentWeatherResponse,
+                forecastResponse = forecastResponse
+            ),
+            FavoriteLocation(cityName = "London"
+                , latitude = 51.5074,
+                longitude = -0.1278,
+                currentWeatherResponse = currentWeatherResponse,
+                forecastResponse = forecastResponse)
+        ).sortedBy { it.cityName }
         // Arrange
-        val locationToDelete = FavoriteLocation(cityName = "London"
-            , latitude = 51.5074,
+        val locationToDelete = FavoriteLocation(
+            cityName = "London",
+            latitude = 51.5074,
             longitude = -0.1278,
             currentWeatherResponse = currentWeatherResponse,
             forecastResponse = forecastResponse)
 
+        coEvery { repo.getAllLocations() } returns flowOf(testLocations)
+        viewModel.fetchFavoriteLocations()
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        assertEquals(
+            Response.Success(testLocations),
+            viewModel.favoriteLocations.value
+        )
+        val expected = listOf(
+            FavoriteLocation(
+                cityName = "Berlin",
+                latitude = 52.5200,
+                longitude = 13.4050,
+                currentWeatherResponse = currentWeatherResponse,
+                forecastResponse = forecastResponse
+            ),
+            FavoriteLocation(cityName = "Amsterdam",
+                latitude = 52.3702,
+                longitude = 4.8952,
+                currentWeatherResponse = currentWeatherResponse,
+                forecastResponse = forecastResponse
+            )
+        ).sortedBy { it.cityName }
+
         coEvery { repo.deleteLocation(locationToDelete) } returns 1
-        coEvery { repo.getAllLocations() } returns flowOf(emptyList())
+        coEvery { repo.getAllLocations() } returns flowOf(expected)
 
         // Act
         viewModel.deleteLocation(locationToDelete)
         testDispatcher.scheduler.advanceUntilIdle()
+        assertEquals(
+            Response.Success(expected),
+            viewModel.favoriteLocations.value
+        )
 
         // Assert
         coVerify(exactly = 1) {
             repo.deleteLocation(locationToDelete)
         }
-        coVerify(exactly = 1) {
+        coVerify(exactly = 2) {
             repo.getAllLocations()
         }
     }
