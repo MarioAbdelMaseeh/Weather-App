@@ -228,7 +228,9 @@ fun WeatherContent(
 @Composable
 fun LocationHeader(weather: CurrentWeatherResponse?) {
     Row(
-        modifier = Modifier.fillMaxWidth().padding(16.dp, 16.dp, 16.dp, 0.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp, 16.dp, 16.dp, 0.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Image(
@@ -260,7 +262,7 @@ fun HourlyForecastItem(x0: WeatherForecast.Item0, unit: String, colors: WeatherC
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .defaultMinSize(100.dp,200.dp)
+            .defaultMinSize(100.dp, 200.dp)
             .padding(8.dp, 8.dp)
             .background(
                 brush = Brush.horizontalGradient(
@@ -457,12 +459,19 @@ fun WeatherDetailsBox(
                 )
                 Spacer(modifier = Modifier.size(8.dp))
                 SmallBox(
-                    R.drawable.eye,
-                    stringResource(R.string.visibility),
-                    LanguageManager.formatNumberBasedOnLanguage(x0?.visibility.toString()),
-                    stringResource(R.string.m),
+                    R.drawable.pressure,
+                    stringResource(R.string.pressure),
+                    LanguageManager.formatNumberBasedOnLanguage(x0?.main?.pressure.toString()),
+                    stringResource(R.string.hpa),
                     colors.textColor
                 )
+//                SmallBox(
+//                    R.drawable.eye,
+//                    stringResource(R.string.visibility),
+//                    LanguageManager.formatNumberBasedOnLanguage(x0?.visibility.toString()),
+//                    stringResource(R.string.m),
+//                    colors.textColor
+//                )
             }
             Column {
 

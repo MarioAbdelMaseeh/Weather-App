@@ -64,5 +64,6 @@
     <string name="manage_your_preferences">إدارة تفضيلاتك</string>
     <string name="title_activity_splash">الشاشة الترحيبية</string>
     <string name="defaultLanguage">افتراضي</string>
-
+    <string name="pressure">الضغط</string>
+    <string name="hpa">ه ب ا</string>
 </resources>
