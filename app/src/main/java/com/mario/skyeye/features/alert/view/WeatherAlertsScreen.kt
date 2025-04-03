@@ -4,7 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.provider.Settings
-import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.PressInteraction
 import androidx.compose.foundation.layout.Arrangement
@@ -36,6 +36,8 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.SelectableDates
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -66,14 +68,22 @@ import com.mario.skyeye.data.models.Alarm
 import com.mario.skyeye.data.models.Response
 import com.mario.skyeye.features.alert.viewmodel.WeatherAlertsViewModel
 import com.mario.skyeye.utils.PermissionUtils
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Calendar
+import java.util.Date
 import java.util.Locale
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun WeatherAlertsScreenUI(viewModel: WeatherAlertsViewModel, onFabClick: MutableState<() -> Unit>) {
+fun WeatherAlertsScreenUI(
+    viewModel: WeatherAlertsViewModel,
+    onFabClick: MutableState<() -> Unit>,
+) {
     val alarms by viewModel.alarms.collectAsStateWithLifecycle()
     var showBottomSheet by remember { mutableStateOf(false)}
     var sheetState = rememberModalBottomSheetState()
@@ -230,6 +240,9 @@ fun AlarmBottomSheet
     var startDurationTimeState by remember { mutableStateOf("") }
     var selectedDate by remember { mutableStateOf("") }
 
+    val calendar = Calendar.getInstance()
+    val currentDateMillis = calendar.timeInMillis
+
     // State for showing dialogs
     var showStartTimePicker by remember { mutableStateOf(false) }
     var showDatePicker by remember { mutableStateOf(false) }
@@ -238,18 +251,44 @@ fun AlarmBottomSheet
     var showPermissionDialog by remember { mutableStateOf(false) }
     var permissionMessage by remember { mutableStateOf("") }
 
+    // Date picker state
+    val datePickerState = rememberDatePickerState(
+        initialSelectedDateMillis = currentDateMillis,
+        yearRange = IntRange(calendar.get(Calendar.YEAR), calendar.get(Calendar.YEAR) + 1),
+        selectableDates = object : SelectableDates {
+            override fun isSelectableDate(utcTimeMillis: Long): Boolean {
+                // Get just the date portion (without time) for comparison
+                val selectedCalendar = Calendar.getInstance().apply { timeInMillis = utcTimeMillis }
+                val currentCalendar = Calendar.getInstance()
 
-    // Time picker state
-    val startTimeState = rememberTimePickerState(
-        initialHour = 12,
-        initialMinute = 0,
-        is24Hour = false
+                // Reset time components to compare just dates
+                selectedCalendar.set(Calendar.HOUR_OF_DAY, 0)
+                selectedCalendar.set(Calendar.MINUTE, 0)
+                selectedCalendar.set(Calendar.SECOND, 0)
+                selectedCalendar.set(Calendar.MILLISECOND, 0)
+
+                currentCalendar.set(Calendar.HOUR_OF_DAY, 0)
+                currentCalendar.set(Calendar.MINUTE, 0)
+                currentCalendar.set(Calendar.SECOND, 0)
+                currentCalendar.set(Calendar.MILLISECOND, 0)
+
+                // Allow today or any future date
+                return !selectedCalendar.before(currentCalendar)
+            }
+
+            override fun isSelectableYear(year: Int): Boolean {
+                return year >= calendar.get(Calendar.YEAR) &&
+                        year <= calendar.get(Calendar.YEAR) + 1
+            }
+        }
     )
 
-    // Date picker state
-    val datePickerState = rememberDatePickerState()
-    val calendar = Calendar.getInstance()
-
+    // Time picker with constraints (initial time is current time + 1 minute)
+    val startTimeState = rememberTimePickerState(
+        initialHour = calendar.get(Calendar.HOUR_OF_DAY),
+        initialMinute = calendar.get(Calendar.MINUTE) ,
+        is24Hour = false
+    )
     // Interaction sources for click handling
     val dateInteractionSource = remember { MutableInteractionSource() }
     val startTimeInteractionSource = remember { MutableInteractionSource() }
@@ -270,21 +309,19 @@ fun AlarmBottomSheet
             }
         }
     }
-    fun checkPermissionsAndSetAlarm() {
-        if (!PermissionUtils.hasNotificationPermission(context)) {
-            permissionMessage = "Notification permission is required for weather alerts"
-            showPermissionDialog = true
-            return
-        }
 
-        if (!PermissionUtils.hasExactAlarmPermission(context)) {
-            permissionMessage = "Exact alarm permission is required for timely weather alerts"
-            showPermissionDialog = true
-            return
-        }
+    fun isTimeInPast(): Boolean {
+        if (selectedDate.isEmpty() || startDurationTimeState.isEmpty()) return false
 
-        viewModel.setAlarm(selectedDate, startDurationTimeState, context)
-        onClose()
+        val dateFormat = SimpleDateFormat("MMM dd, yyyy hh:mm a", Locale.getDefault())
+        val dateTimeString = "$selectedDate $startDurationTimeState"
+
+        return try {
+            val selectedDateTime = dateFormat.parse(dateTimeString)
+            selectedDateTime != null && selectedDateTime.before(Date())
+        } catch (e: Exception) {
+            false
+        }
     }
 
     Column(
@@ -397,7 +434,26 @@ fun AlarmBottomSheet
 
             Button(
                 onClick = {
-                    checkPermissionsAndSetAlarm()
+                    when {
+                        selectedDate.isEmpty() || startDurationTimeState.isEmpty() -> {
+                            Toast.makeText(context, "Please select date and time", Toast.LENGTH_SHORT).show()
+                        }
+                        isTimeInPast() -> {
+                            Toast.makeText(context, "Please select a future date and time", Toast.LENGTH_SHORT).show()
+                        }
+                        !PermissionUtils.hasNotificationPermission(context) -> {
+                            permissionMessage = "Notification permission is required"
+                            showPermissionDialog = true
+                        }
+                        !PermissionUtils.hasExactAlarmPermission(context) -> {
+                            permissionMessage = "Exact alarm permission is required"
+                            showPermissionDialog = true
+                        }
+                        else -> {
+                            viewModel.setAlarm(selectedDate, startDurationTimeState, context)
+                            onClose()
+                        }
+                    }
                 },
                 shape = RoundedCornerShape(8.dp),
                 colors = ButtonDefaults.buttonColors(greenColor),

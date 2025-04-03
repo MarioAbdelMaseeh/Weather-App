@@ -4,7 +4,6 @@ package com.mario.skyeye.features.details.view
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -39,10 +38,10 @@ import com.mario.skyeye.data.models.WeatherData
 import com.mario.skyeye.enums.TempUnit
 import com.mario.skyeye.enums.TempUnit.Companion.fromUnitType
 import com.mario.skyeye.features.details.viewmodel.DetailsViewModel
+import com.mario.skyeye.features.home.view.AnimationLoading
 import com.mario.skyeye.features.home.view.CurrentWeatherBox
 import com.mario.skyeye.features.home.view.ErrorText
 import com.mario.skyeye.features.home.view.ForecastSection
-import com.mario.skyeye.features.home.view.LoadingIndicator
 import com.mario.skyeye.features.home.view.TimeBox
 import com.mario.skyeye.features.home.view.WeatherDetailsBox
 import com.mario.skyeye.utils.WeatherColors
@@ -116,13 +115,7 @@ fun DetailsScreenUI(
             // Weather Content
             when (weatherData.value) {
                 is Response.Loading -> {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .weight(1f)
-                    ) {
-                        LoadingIndicator()
-                    }
+                    AnimationLoading()
                 }
                 is Response.Success -> {
                     WeatherContent(
@@ -168,43 +161,3 @@ fun WeatherContent(
     }
 }
 
-//@RequiresApi(Build.VERSION_CODES.O)
-//@OptIn(ExperimentalGlideComposeApi::class)
-//@Composable
-//fun DetailsScreenUI(viewModel: DetailsViewModel, location: String) {
-//    val weatherData = viewModel.weatherDataState.collectAsState()
-//    val favoriteLocation = Gson().fromJson(location, FavoriteLocation::class.java)
-//    viewModel.fetchWeatherData(favoriteLocation.latitude, favoriteLocation.longitude, favoriteLocation.cityName)
-//
-//    val dynamicColors = getWeatherBasedColors(weatherData.value)
-//    Box(
-//        modifier = Modifier
-//            .fillMaxSize()
-//            .background(
-//                color = Color.White
-//            )
-//    ) {
-//        Column(modifier = Modifier.fillMaxSize()) {
-//            LazyColumn(
-//                modifier = Modifier.fillMaxSize(),
-//                horizontalAlignment = Alignment.CenterHorizontally,
-//                verticalArrangement = Arrangement.Center
-//            ) {
-//                item {
-//                    when (weatherData.value) {
-//                        is Response.Loading -> LoadingIndicator()
-//                        is Response.Success -> WeatherContent(
-//                            weatherData.value,
-//                            viewModel.tempUnit,
-//                            viewModel.windSpeedUnit,
-//                            dynamicColors
-//                        )
-//                        is Response.Failure -> ErrorText(weatherData.value as Response.Failure)
-//                    }
-//                }
-//            }
-//        }
-//    }
-//}
-//
-//

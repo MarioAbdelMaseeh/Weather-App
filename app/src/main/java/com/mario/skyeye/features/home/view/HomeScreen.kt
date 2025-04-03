@@ -392,7 +392,7 @@ fun ForecastDay(
             }$unit",
             color = textColor,
             fontSize = 16.sp,
-            modifier = Modifier.width(80.dp),
+            modifier = Modifier.width(90.dp),
             textAlign = TextAlign.End
         )
         Spacer(modifier = Modifier.size(8.dp))
@@ -649,7 +649,7 @@ fun TimeBox(
     }
 }
 @Composable
-private fun AnimationLoading() {
+fun AnimationLoading() {
     LottieAnimation(
         composition = rememberLottieComposition(
             LottieCompositionSpec.RawRes(

@@ -52,6 +52,7 @@ import com.mario.skyeye.enums.TempUnit.Companion.fromSymbol
 import com.mario.skyeye.enums.TempUnit.Companion.fromUnitType
 import com.mario.skyeye.enums.TempUnit.Companion.fromWindUnitType
 import com.mario.skyeye.features.settings.viewmodel.SettingsViewModel
+import com.mario.skyeye.utils.Constants
 import com.mario.skyeye.utils.NetworkMonitor
 import kotlinx.coroutines.delay
 
@@ -141,17 +142,17 @@ fun SettingsScreen(viewModel: SettingsViewModel,onBack: () -> Unit, function: ()
                     options = listOf(
                         Languages.ENGLISH.displayName,
                         Languages.ARABIC.displayName,
-                        Languages.DEFAULT.displayName
+                        Languages.Default.displayName
                     ),
                     selectedOption = fromCode(selectedLanguage)?.displayName ?: Languages.ENGLISH.displayName,
                     onOptionSelected = {
                         if ((fromLanguageDisplayName(it)?.code
                                 ?: Languages.ENGLISH.code) != viewModel.getPreference(
-                                "language",
+                                Constants.LANGUAGE,
                                 Languages.ENGLISH.code
                             )
                         ){
-                            viewModel.updatePreference("language", fromLanguageDisplayName(it)?.code ?: Languages.ENGLISH.code)
+                            viewModel.updatePreference(Constants.LANGUAGE, fromLanguageDisplayName(it)?.code ?: Languages.ENGLISH.code)
                             restartActivity(context)
                         }
                     }
@@ -170,24 +171,12 @@ fun SettingsScreen(viewModel: SettingsViewModel,onBack: () -> Unit, function: ()
                         if (it == MapHelper.MAP.getDisplayName()){
                             function()
                         }else{
-                            viewModel.updatePreference("location", fromMapDisplayName(it)?.mapType ?: MapHelper.GPS.mapType)
+                            viewModel.updatePreference(Constants.LOCATION, fromMapDisplayName(it)?.mapType ?: MapHelper.GPS.mapType)
                         }
                     }
                 )
             }
 
-            // Theme Selection
-            SettingsCategory(title = stringResource(R.string.theme)) {
-                ToggleButtonGroup(
-                    options = listOf(
-                        stringResource(R.string.system),
-                        stringResource(R.string.light),
-                        stringResource(R.string.dark)
-                    ),
-                    selectedOption = selectedTheme,
-                    onOptionSelected = { viewModel.updatePreference("theme", it) }
-                )
-            }
         }
     }
 }

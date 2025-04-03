@@ -122,7 +122,7 @@ fun FavoritesScreenUI(
                                     location?.let {
                                         SwipeToDeleteContainer(item = it, onDelete = { viewModel.deleteLocation(it) }, snackbarHostState = snackbarHostState,
                                             onRestore = { } ) { location ->
-                                            FavoriteLocationItem(viewModel = viewModel,location = location, navToDetails = navToDetails)
+                                            FavoriteLocationItem(location = location, navToDetails = navToDetails)
                                         }
                                     }
                                 }
@@ -135,7 +135,7 @@ fun FavoritesScreenUI(
     }
 
 @Composable
-fun FavoriteLocationItem(viewModel: FavoritesViewModel, location: FavoriteLocation, navToDetails: (String) -> Unit) {
+fun FavoriteLocationItem(location: FavoriteLocation, navToDetails: (String) -> Unit) {
     Card(
         modifier = Modifier
             .fillMaxWidth()

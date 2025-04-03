@@ -86,7 +86,7 @@ class AlarmService : Service() {
             }
             ACTION_SNOOZE_ALARM -> {
                 stopAlarm(alarmId)
-                setManualAlarm(this, System.currentTimeMillis() + 5 * 60 * 1000, alarmId,
+                setManualAlarm(this, System.currentTimeMillis() + 1 * 60 * 1000, alarmId,
                     intent.getDoubleExtra("LATITUDE", 0.0),
                     intent.getDoubleExtra("LONGITUDE", 0.0)
                 )
@@ -98,7 +98,6 @@ class AlarmService : Service() {
                             createdAt = alarmId.toInt()
                         )
                     )
-                    Log.d("AlarmService", "Inserting snoozed alarm with createdAt: $alarmId")
                 }
 
                 return START_NOT_STICKY

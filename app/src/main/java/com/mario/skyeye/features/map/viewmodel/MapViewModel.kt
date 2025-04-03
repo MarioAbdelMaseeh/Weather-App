@@ -16,6 +16,7 @@ import com.mario.skyeye.data.repo.Repo
 import com.mario.skyeye.utils.Constants
 import com.mario.skyeye.utils.PlacesClientManager
 import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
@@ -43,6 +44,8 @@ class MapViewModel (private val repo: Repo, private val placesClient: PlacesClie
 
     private val cameraPosition = MutableStateFlow(CameraPosition.fromLatLngZoom(LatLng(_selectedLocation.value.latitude, _selectedLocation.value.longitude), 10f))
     val cameraPositionState = cameraPosition.asStateFlow()
+
+    val snackMessage = MutableSharedFlow<String>()
 
     init {
         observeSearchQuery()
@@ -120,6 +123,7 @@ class MapViewModel (private val repo: Repo, private val placesClient: PlacesClie
             if (latLng != null){
                 val currentWeatherResponse = repo.getCurrentWeather( latLng.latitude, latLng.longitude,(tempUnit))?.first()
                 repo.insertLocation(FavoriteLocation(cityName.value, latLng.latitude, latLng.longitude, currentWeatherResponse!!, repo.getWeatherForecast( latLng.latitude, latLng.longitude, (tempUnit))?.first()!!))
+                snackMessage.emit("Location saved successfully")
             }else{
                 Log.i("TAG", "saveLocation: Location is null")
             }
@@ -134,6 +138,7 @@ class MapViewModel (private val repo: Repo, private val placesClient: PlacesClie
     fun setDefaultLocation(latLng: LatLng){
         viewModelScope.launch {
             repo.savePreference(Constants.CURRENT_LOCATION, "${latLng.latitude},${latLng.longitude}")
+            snackMessage.emit("Location saved successfully")
         }
     }
     fun updatePreference(key: String, value: String){

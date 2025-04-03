@@ -29,18 +29,15 @@ fun setManualAlarm(context: Context, triggerTime: Long, alarmId: Int, lat: Doubl
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
         if (alarmManager.canScheduleExactAlarms()) {
             alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerTime, pendingIntent)
-            Toast.makeText(context, "Alarm Set!", Toast.LENGTH_SHORT).show()
             return true
         } else {
             // Redirect user to settings to allow exact alarms
             val settingsIntent = Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM)
             context.startActivity(settingsIntent)
-            Toast.makeText(context, "Enable exact alarms in settings", Toast.LENGTH_LONG).show()
             return false
         }
     } else {
         alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerTime, pendingIntent)
-        Toast.makeText(context, "Alarm Set!", Toast.LENGTH_SHORT).show()
         return true
     }
 }

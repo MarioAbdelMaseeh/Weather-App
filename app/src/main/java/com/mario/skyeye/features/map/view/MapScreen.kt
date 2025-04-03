@@ -54,11 +54,12 @@ import kotlinx.coroutines.FlowPreview
 
 @OptIn(FlowPreview::class)
 @Composable
-fun MapUi(viewModel: MapViewModel, navController: NavController, snackbarHostState: SnackbarHostState, buttonAction: Boolean) {
+fun MapUi(viewModel: MapViewModel, snackbarHostState: SnackbarHostState, buttonAction: Boolean, onBackPressed: () -> Unit = {}) {
     val searchQuery by viewModel.searchQuery.collectAsStateWithLifecycle()
     val selectedLocation by viewModel.selectedLocation.collectAsStateWithLifecycle()
     val predictions by viewModel.predictions.collectAsStateWithLifecycle()
     val cityName by viewModel.cityName.collectAsStateWithLifecycle()
+    val snackMessage = viewModel.snackMessage
     val cameraPositionState = rememberCameraPositionState {
         position = viewModel.cameraPositionState.value
     }
@@ -72,6 +73,11 @@ fun MapUi(viewModel: MapViewModel, navController: NavController, snackbarHostSta
         selectedLocation.let {
             markerState.position = it
             cameraPositionState.animate(CameraUpdateFactory.newLatLngZoom(it, 10f))
+        }
+    }
+    LaunchedEffect(snackMessage) {
+        snackMessage.collect {
+            snackbarHostState.showSnackbar(it)
         }
     }
     Box(modifier = Modifier.fillMaxSize()) {
@@ -93,7 +99,7 @@ fun MapUi(viewModel: MapViewModel, navController: NavController, snackbarHostSta
         ){
             // Back Button (Top-Left Corner)
             IconButton(
-                onClick = { navController.popBackStack() },
+                onClick = { onBackPressed() },
                 modifier = Modifier
                     .padding(8.dp, 32.dp)
                     .background(Color.White, shape = CircleShape)

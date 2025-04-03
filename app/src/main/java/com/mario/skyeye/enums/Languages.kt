@@ -12,7 +12,7 @@ enum class Languages(val displayName: String, val code: String) {
     ARABIC("العربية", "ar"),
     HINDI("हिन्दी", "hi"),
     PORTUGUESE("Português", "pt"),
-    DEFAULT("Default", "");
+    Default("Default", "");
     companion object {
         fun fromCode(code: String): Languages? = Languages.entries.find { it.code == code }
         fun fromLanguageDisplayName(displayName: String): Languages? = Languages.entries.find { it.displayName == displayName }

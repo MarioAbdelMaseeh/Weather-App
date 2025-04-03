@@ -63,5 +63,6 @@
     <string name="manage_your_saved_locations">إدارة المواقع المحفوظة</string>
     <string name="manage_your_preferences">إدارة تفضيلاتك</string>
     <string name="title_activity_splash">الشاشة الترحيبية</string>
+    <string name="defaultLanguage">افتراضي</string>
 
 </resources>

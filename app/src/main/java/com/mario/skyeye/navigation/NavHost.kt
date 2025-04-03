@@ -115,7 +115,7 @@ fun SetupNavHost(
                             AppDataBase.getInstance(navHostController.context).alarmDao()),
                         AppPreference(LocalContext.current)),
                         )
-                ),onFabClick
+                ),onFabClick,
             )
         }
         composable<SettingsScreen> {
@@ -149,9 +149,10 @@ fun SetupNavHost(
                         AppDataBase.getInstance(LocalContext.current).alarmDao()),
                     AppPreference(LocalContext.current)),
                     PlacesClientManager.getClient(LocalContext.current))
-            ),navHostController,
-                snackbarHostState,
-                 buttonAction)
+            ), snackbarHostState,
+                 buttonAction){
+                 navHostController.popBackStack()
+            }
         }
         composable<DetailsScreen> {
             showMap.value = false

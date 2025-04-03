@@ -27,7 +27,7 @@ class DetailsViewModel(private val repo: Repo): ViewModel(){
     val weatherDataState: StateFlow<Response<WeatherData?>> = _weatherDataState.asStateFlow()
 
     private val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
-        _weatherDataState.value = Response.Failure(throwable.message.toString())
+
     }
 
     fun fetchWeatherData(lat: Double, lon: Double,cityName: String) {
