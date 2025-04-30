@@ -465,13 +465,6 @@ fun WeatherDetailsBox(
                     stringResource(R.string.hpa),
                     colors.textColor
                 )
-//                SmallBox(
-//                    R.drawable.eye,
-//                    stringResource(R.string.visibility),
-//                    LanguageManager.formatNumberBasedOnLanguage(x0?.visibility.toString()),
-//                    stringResource(R.string.m),
-//                    colors.textColor
-//                )
             }
             Column {
 

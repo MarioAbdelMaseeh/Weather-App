@@ -90,7 +90,7 @@ class WeatherAlertsViewModel(private val repo: Repo) : ViewModel(){
                 if (alarm.repeatInterval.toInt() != 0) {
                     cancelPeriodicWeatherAlert(context, alarm.label.slice( 19 until alarm.label.length))
                 }else{
-                    cancelAlarm(context, alarm)
+                    cancelAlarm(context, alarm.createdAt, lat, lon)
                 }
             }
             repo.updateAlarm(alarm)
@@ -99,7 +99,7 @@ class WeatherAlertsViewModel(private val repo: Repo) : ViewModel(){
     }
     fun deleteAlarm(context: Context, alarm: Alarm) {
         viewModelScope.launch {
-            cancelAlarm(context, alarm)
+            cancelAlarm(context, alarm.createdAt, lat, lon)
             repo.deleteAlarm(alarm)
             Toast.makeText(context, "Alarm canceled", Toast.LENGTH_SHORT).show()
         }
